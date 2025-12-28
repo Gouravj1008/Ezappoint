@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Booking System Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 2.5rem;
+        }
+        .test-section {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+        .test-section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .result {
+            background: #212529;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .info {
+            color: #17a2b8;
+        }
+        .warning {
+            color: #ffc107;
+        }
+        .step {
+            padding: 10px;
+            margin: 5px 0;
+            border-left: 3px solid #667eea;
+            padding-left: 15px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status-online {
+            background: #28a745;
+            color: white;
+        }
+        .status-offline {
+            background: #dc3545;
+            color: white;
+        }
+        iframe {
+            width: 100%;
+            height: 700px;
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Complete Booking System Test</h1>
+        <div style="text-align: center; margin-bottom: 30px;">
+            <span>Server Status: </span>
+            <span class="status-badge" id="serverStatus">Checking...</span>
+        </div>
+
+        <!-- Setup Tests -->
+        <div class="test-section">
+            <h2>1️⃣ Setup & Preparation</h2>
+            <button onclick="setupComplete()">🚀 Run Complete Setup</button>
+            <button onclick="createTestUser()">👤 Create Test User</button>
+            <button onclick="createTestSlots()">📅 Create Test Slots</button>
+            <button onclick="loginTestUser()">🔐 Login Test User</button>
+            <div class="result" id="setupResult"></div>
+        </div>
+
+        <!-- Booking Tests -->
+        <div class="test-section">
+            <h2>2️⃣ Booking Tests</h2>
+            <button onclick="testNormalBooking()">✅ Test Normal Booking</button>
+            <button onclick="testEmergencyBooking()">🚨 Test Emergency Booking</button>
+            <button onclick="testInvalidBooking()">❌ Test Invalid Booking</button>
+            <div class="result" id="bookingResult"></div>
+        </div>
+
+        <!-- View Tests -->
+        <div class="test-section">
+            <h2>3️⃣ View Appointments</h2>
+            <button onclick="viewMyAppointments()">📋 View My Appointments</button>
+            <button onclick="viewAllAppointments()">📊 View All Appointments</button>
+            <div class="result" id="viewResult"></div>
+        </div>
+
+        <!-- Live Booking Page -->
+        <div class="test-section">
+            <h2>4️⃣ Live Booking Page</h2>
+            <p>Test the booking page manually below:</p>
+            <iframe src="Book Appointment.html" id="bookingFrame"></iframe>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "http://localhost:5000";
+        let testToken = null;
+        let testUserId = null;
+
+        // Log function
+        function log(elementId, message, type = 'info') {
+            const element = document.getElementById(elementId);
+            const timestamp = new Date().toLocaleTimeString();
+            const colors = {
+                success: '#28a745',
+                error: '#dc3545',
+                info: '#17a2b8',
+                warning: '#ffc107',
+                default: '#00ff00'
+            };
+            const color = colors[type] || colors.default;
+            element.innerHTML += `<div style="color: ${color};">[${timestamp}] ${message}</div>`;
+            element.scrollTop = element.scrollHeight;
+        }
+
+        // Check server status
+        async function checkServerStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'test', password: 'test' })
+                });
+                
+                const badge = document.getElementById('serverStatus');
+                badge.className = 'status-badge status-online';
+                badge.textContent = '✅ Server Online';
+                return true;
+            } catch (error) {
+                const badge = document.getElementById('serverStatus');
+                badge.className = 'status-badge status-offline';
+                badge.textContent = '❌ Server Offline';
+                return false;
+            }
+        }
+
+        // Create test user
+        async function createTestUser() {
+            log('setupResult', '🔄 Creating test user...', 'info');
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/signup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: 'testuser',
+                        phoneNumber: '9876543210',
+                        email: 'test@test.com',
+                        location: 'Mumbai',
+                        password: 'test123'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    log('setupResult', '✅ Test user created successfully!', 'success');
+                    log('setupResult', `   User ID: ${data.userId}`, 'info');
+                    testUserId = data.userId;
+                    return true;
+                } else {
+                    if (data.message && data.message.includes('already exists')) {
+                        log('setupResult', '⚠️ Test user already exists (OK)', 'warning');
+                        return true;
+                    }
+                    log('setupResult', `❌ Error: ${data.message}`, 'error');
+                    return false;
+                }
+            } catch (error) {
+                log('setupResult', `❌ Network error: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        // Login test user
+        async function loginTestUser() {
+            log('setupResult', '🔄 Logging in test user...', 'info');
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: 'testuser',
+                        password: 'test123'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    testToken = data.token;
+                    localStorage.setItem('jwtToken', testToken);
+                    log('setupResult', '✅ Login successful!', 'success');
+                    log('setupResult', `   Token: ${testToken.substring(0, 20)}...`, 'info');
+                    return true;
+                } else {
+                    log('setupResult', `❌ Login failed: ${data.message}`, 'error');
+                    return false;
+                }
+            } catch (error) {
+                log('setupResult', `❌ Network error: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        // Create test slots
+        async function createTestSlots() {
+            log('setupResult', '🔄 Creating test appointment slots...', 'info');
+            
+            if (!testToken) {
+                log('setupResult', '⚠️ No token found, logging in first...', 'warning');
+                const loginSuccess = await loginTestUser();
+                if (!loginSuccess) return false;
+            }
+
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const dateStr = tomorrow.toISOString().split('T')[0];
+
+            const slots = [
+                {
+                    hospitalName: 'City Hospital',
+                    doctorName: 'Dr. Smith',
+                    specialization: 'Cardiology',
+                    date: dateStr,
+                    timeSlot: '09:00 - 10:00',
+                    location: 'Mumbai',
+                    maxCapacity: 10
+                },
+                {
+                    hospitalName: 'Central Clinic',
+                    doctorName: 'Dr. Johnson',
+                    specialization: 'General Medicine',
+                    date: dateStr,
+                    timeSlot: '10:00 - 11:00',
+                    location: 'Mumbai',
+                    maxCapacity: 8
+                },
+                {
+                    hospitalName: 'Metro Hospital',
+                    doctorName: 'Dr. Brown',
+                    specialization: 'Pediatrics',
+                    date: dateStr,
+                    timeSlot: '11:00 - 12:00',
+                    location: 'Mumbai',
+                    maxCapacity: 12
+                }
+            ];
+
+            let successCount = 0;
+            for (const slot of slots) {
+                try {
+                    const response = await fetch(`${API_BASE}/api/organization/create-slots`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${testToken}`
+                        },
+                        body: JSON.stringify(slot)
+                    });
+
+                    const data = await response.json();
+                    
+                    if (response.ok) {
+                        log('setupResult', `✅ Created slot: ${slot.doctorName} - ${slot.timeSlot}`, 'success');
+                        successCount++;
+                    } else {
+                        log('setupResult', `⚠️ Slot exists: ${slot.doctorName}`, 'warning');
+                    }
+                } catch (error) {
+                    log('setupResult', `❌ Error creating slot: ${error.message}`, 'error');
+                }
+            }
+
+            log('setupResult', `✅ Created ${successCount} new slot(s)`, 'success');
+            return true;
+        }
+
+        // Complete setup
+        async function setupComplete() {
+            document.getElementById('setupResult').innerHTML = '';
+            log('setupResult', '🚀 Starting complete setup...', 'info');
+            log('setupResult', '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+            
+            const serverOnline = await checkServerStatus();
+            if (!serverOnline) {
+                log('setupResult', '❌ Server is offline! Please start the backend server.', 'error');
+                return;
+            }
+            
+            await createTestUser();
+            await new Promise(r => setTimeout(r, 500));
+            
+            await loginTestUser();
+            await new Promise(r => setTimeout(r, 500));
+            
+            await createTestSlots();
+            
+            log('setupResult', '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+            log('setupResult', '✅ Setup complete! You can now test bookings.', 'success');
+        }
+
+        // Test normal booking
+        async function testNormalBooking() {
+            document.getElementById('bookingResult').innerHTML = '';
+            log('bookingResult', '🧪 Testing Normal Booking...', 'info');
+            log('bookingResult', '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+            
+            if (!testToken) {
+                log('bookingResult', '⚠️ No token found, running setup first...', 'warning');
+                await setupComplete();
+                await new Promise(r => setTimeout(r, 1000));
+            }
+
+            try {
+                // Step 1: Search for slots
+                log('bookingResult', '📅 Step 1: Searching for available slots...', 'info');
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const dateStr = tomorrow.toISOString().split('T')[0];
+
+                const slotsResponse = await fetch(`${API_BASE}/api/organization/available-slots?date=${dateStr}&location=Mumbai`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${testToken}`
+                    }
+                });
+
+                const slotsData = await slotsResponse.json();
+                log('bookingResult', `✅ Found ${slotsData.slots.length} available slot(s)`, 'success');
+
+                if (slotsData.slots.length === 0) {
+                    log('bookingResult', '❌ No slots available! Create slots first.', 'error');
+                    return;
+                }
+
+                // Step 2: Book appointment
+                const slot = slotsData.slots[0];
+                log('bookingResult', `📝 Step 2: Booking slot with Dr. ${slot.doctorName}...`, 'info');
+
+                const bookResponse = await fetch(`${API_BASE}/api/appointments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${testToken}`
+                    },
+                    body: JSON.stringify({
+                        slotId: slot._id,
+                        patientName: 'Test Patient',
+                        contactNumber: '9876543210',
+                        isEmergency: false,
+                        emergencyReason: ''
+                    })
+                });
+
+                const bookData = await bookResponse.json();
+                
+                if (bookResponse.ok) {
+                    log('bookingResult', '✅ BOOKING SUCCESSFUL!', 'success');
+                    log('bookingResult', `   🎫 Token Number: ${bookData.tokenNumber}`, 'success');
+                    log('bookingResult', `   👨‍⚕️ Doctor: ${bookData.appointment.doctorName}`, 'info');
+                    log('bookingResult', `   🏥 Hospital: ${bookData.appointment.organizationName}`, 'info');
+                    log('bookingResult', `   📅 Date: ${bookData.appointment.date}`, 'info');
+                    log('bookingResult', `   ⏰ Time: ${bookData.appointment.timeSlot}`, 'info');
+                    log('bookingResult', `   📊 Remaining Slots: ${bookData.remainingSlots}`, 'info');
+                    log('bookingResult', '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'success');
+                    
+                    // Reload iframe to show confirmation
+                    setTimeout(() => {
+                        alert(`✅ Booking Successful!\n\n🎫 Token Number: ${bookData.tokenNumber}\n👨‍⚕️ Doctor: ${bookData.appointment.doctorName}\n📅 Date: ${bookData.appointment.date}\n⏰ Time: ${bookData.appointment.timeSlot}`);
+                    }, 500);
+                } else {
+                    log('bookingResult', `❌ Booking failed: ${bookData.message}`, 'error');
+                }
+            } catch (error) {
+                log('bookingResult', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Test emergency booking
+        async function testEmergencyBooking() {
+            document.getElementById('bookingResult').innerHTML = '';
+            log('bookingResult', '🚨 Testing Emergency Booking...', 'warning');
+            log('bookingResult', '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'warning');
+            
+            if (!testToken) {
+                log('bookingResult', '⚠️ No token found, running setup first...', 'warning');
+                await setupComplete();
+                await new Promise(r => setTimeout(r, 1000));
+            }
+
+            try {
+                // Search for slots
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const dateStr = tomorrow.toISOString().split('T')[0];
+
+                const slotsResponse = await fetch(`${API_BASE}/api/organization/available-slots?date=${dateStr}&location=Mumbai`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${testToken}` }
+                });
+
+                const slotsData = await slotsResponse.json();
+                
+                if (slotsData.slots.length === 0) {
+                    log('bookingResult', '❌ No slots available!', 'error');
+                    return;
+                }
+
+                const slot = slotsData.slots[0];
+                log('bookingResult', `🚨 Booking EMERGENCY appointment with Dr. ${slot.doctorName}...`, 'warning');
+
+                const bookResponse = await fetch(`${API_BASE}/api/appointments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${testToken}`
+                    },
+                    body: JSON.stringify({
+                        slotId: slot._id,
+                        patientName: 'Emergency Patient',
+                        contactNumber: '9999999999',
+                        isEmergency: true,
+                        emergencyReason: 'Severe chest pain and difficulty breathing - URGENT'
+                    })
+                });
+
+                const bookData = await bookResponse.json();
+                
+                if (bookResponse.ok) {
+                    log('bookingResult', '🚨 EMERGENCY BOOKING SUCCESSFUL!', 'warning');
+                    log('bookingResult', `   🎫 Token Number: ${bookData.tokenNumber}`, 'success');
+                    log('bookingResult', `   ⚠️ Priority Level: ${bookData.priorityLevel}`, 'warning');
+                    log('bookingResult', `   👨‍⚕️ Doctor: ${bookData.appointment.doctorName}`, 'info');
+                    log('bookingResult', `   🏥 Hospital: ${bookData.appointment.organizationName}`, 'info');
+                    log('bookingResult', `   📅 Date: ${bookData.appointment.date}`, 'info');
+                    log('bookingResult', `   ⏰ Time: ${bookData.appointment.timeSlot}`, 'info');
+                    log('bookingResult', `   🚨 Status: ${bookData.appointment.status.toUpperCase()}`, 'warning');
+                    log('bookingResult', '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'warning');
+                    
+                    setTimeout(() => {
+                        alert(`🚨 EMERGENCY BOOKING SUCCESSFUL!\n\n🎫 Token: ${bookData.tokenNumber}\n⚠️ HIGH PRIORITY\n👨‍⚕️ Doctor: ${bookData.appointment.doctorName}\n📅 Date: ${bookData.appointment.date}`);
+                    }, 500);
+                } else {
+                    log('bookingResult', `❌ Emergency booking failed: ${bookData.message}`, 'error');
+                }
+            } catch (error) {
+                log('bookingResult', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Test invalid booking
+        async function testInvalidBooking() {
+            document.getElementById('bookingResult').innerHTML = '';
+            log('bookingResult', '❌ Testing Invalid Booking Scenarios...', 'info');
+            log('bookingResult', '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+            
+            // Test 1: No token
+            log('bookingResult', '🧪 Test 1: Booking without token...', 'info');
+            try {
+                const response = await fetch(`${API_BASE}/api/appointments`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        slotId: '123',
+                        patientName: 'Test',
+                        contactNumber: '9876543210'
+                    })
+                });
+                
+                if (response.status === 401) {
+                    log('bookingResult', '✅ Correctly rejected (401 Unauthorized)', 'success');
+                } else {
+                    log('bookingResult', '❌ Should have rejected', 'error');
+                }
+            } catch (error) {
+                log('bookingResult', `⚠️ Network error (expected)`, 'warning');
+            }
+
+            // Test 2: Invalid slot ID
+            if (testToken) {
+                log('bookingResult', '🧪 Test 2: Booking with invalid slot ID...', 'info');
+                try {
+                    const response = await fetch(`${API_BASE}/api/appointments`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${testToken}`
+                        },
+                        body: JSON.stringify({
+                            slotId: 'invalid_id_xyz',
+                            patientName: 'Test Patient',
+                            contactNumber: '9876543210'
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    if (!response.ok) {
+                        log('bookingResult', `✅ Correctly rejected: ${data.message}`, 'success');
+                    }
+                } catch (error) {
+                    log('bookingResult', `⚠️ Error (expected): ${error.message}`, 'warning');
+                }
+            }
+
+            log('bookingResult', '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+            log('bookingResult', '✅ Invalid booking tests completed', 'success');
+        }
+
+        // View my appointments
+        async function viewMyAppointments() {
+            document.getElementById('viewResult').innerHTML = '';
+            log('viewResult', '📋 Fetching your appointments...', 'info');
+            
+            if (!testToken) {
+                log('viewResult', '⚠️ No token found. Please login first.', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/appointments/my`, {
+                    headers: { 'Authorization': `Bearer ${testToken}` }
+                });
+
+                const appointments = await response.json();
+                
+                log('viewResult', `✅ Found ${appointments.length} appointment(s)`, 'success');
+                log('viewResult', '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+                
+                appointments.forEach((appt, index) => {
+                    const emergency = appt.isEmergency ? '🚨' : '📅';
+                    log('viewResult', `${emergency} Appointment ${index + 1}:`, 'info');
+                    log('viewResult', `   Token: ${appt.tokenNumber}`, 'info');
+                    log('viewResult', `   Doctor: ${appt.doctorName}`, 'info');
+                    log('viewResult', `   Date: ${appt.date} | Time: ${appt.timeSlot}`, 'info');
+                    log('viewResult', `   Status: ${appt.status}`, appt.isEmergency ? 'warning' : 'info');
+                    log('viewResult', '───────────────────────────────────', 'info');
+                });
+            } catch (error) {
+                log('viewResult', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // View all appointments
+        async function viewAllAppointments() {
+            document.getElementById('viewResult').innerHTML = '';
+            log('viewResult', '📊 Fetching all appointments...', 'info');
+            
+            if (!testToken) {
+                log('viewResult', '⚠️ No token found. Please login first.', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/api/appointments/all`, {
+                    headers: { 'Authorization': `Bearer ${testToken}` }
+                });
+
+                const appointments = await response.json();
+                
+                log('viewResult', `✅ Total ${appointments.length} appointment(s) in system`, 'success');
+                
+                const emergencyCount = appointments.filter(a => a.isEmergency).length;
+                log('viewResult', `🚨 Emergency: ${emergencyCount} | 📅 Normal: ${appointments.length - emergencyCount}`, 'info');
+                log('viewResult', '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'info');
+                
+                appointments.slice(0, 10).forEach((appt, index) => {
+                    const emergency = appt.isEmergency ? '🚨' : '📅';
+                    log('viewResult', `${emergency} ${appt.patientName} - Token ${appt.tokenNumber}`, appt.isEmergency ? 'warning' : 'info');
+                    log('viewResult', `   ${appt.doctorName} | ${appt.date}`, 'info');
+                });
+                
+                if (appointments.length > 10) {
+                    log('viewResult', `... and ${appointments.length - 10} more`, 'info');
+                }
+            } catch (error) {
+                log('viewResult', `❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        // Initialize
+        checkServerStatus();
+        setInterval(checkServerStatus, 5000);
+    </script>
+</body>
+</html>

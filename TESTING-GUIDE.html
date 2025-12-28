@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Booking - Complete Testing Guide</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            margin: 0;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+        }
+        
+        h2 {
+            color: #667eea;
+            margin-top: 30px;
+            padding-bottom: 10px;
+            border-left: 4px solid #667eea;
+            padding-left: 15px;
+        }
+        
+        .step {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .step-title {
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        
+        .step-content {
+            color: #666;
+            line-height: 1.6;
+        }
+        
+        .code {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            margin: 10px 0;
+        }
+        
+        .success {
+            background: #d4edda;
+            border-left-color: #28a745;
+            color: #155724;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border-left-color: #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            border-left: 4px solid #ffc107;
+        }
+        
+        .note {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        
+        .test-checklist {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin: 10px 0;
+            background: white;
+            border-radius: 5px;
+        }
+        
+        .checkbox {
+            width: 24px;
+            height: 24px;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+        
+        .links {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        
+        .links a {
+            display: block;
+            padding: 10px 0;
+            color: #667eea;
+            text-decoration: none;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .links a:last-child {
+            border-bottom: none;
+        }
+        
+        .links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 Appointment Booking System - Complete Testing Guide</h1>
+        
+        <div class="note">
+            <strong>📌 Important:</strong> Make sure the backend server is running on http://localhost:5000 before starting tests.
+        </div>
+
+        <h2>✅ Quick Start (5 minutes)</h2>
+        
+        <div class="step">
+            <div class="step-title">1. Verify Backend is Running</div>
+            <div class="step-content">
+                Open browser console (F12) and run:
+                <div class="code">fetch('http://localhost:5000/health').then(r => r.json()).then(d => console.log('✅ Status:', d))</div>
+                <div class="success">✅ Should see: { status: "healthy", timestamp: "..." }</div>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-title">2. Login with Test Account</div>
+            <div class="step-content">
+                <p>Use the existing test account:</p>
+                <div class="code">
+Email: testuser@example.com
+Password: password123
+                </div>
+                <p>Or register a new account at <a href="User sign up.html" target="_blank">User sign up.html</a></p>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-title">3. Book an Appointment</div>
+            <div class="step-content">
+                <ol>
+                    <li>Open <a href="Book Appointment.html" target="_blank">Book Appointment.html</a></li>
+                    <li>Select tomorrow's date (or later)</li>
+                    <li>Enter location: <strong>Delhi</strong> or <strong>Mumbai</strong></li>
+                    <li>Click "Search Available Slots"</li>
+                    <li>Select a slot from the dropdown</li>
+                    <li>Enter your name and 10-digit phone number</li>
+                    <li>Click "Book Appointment"</li>
+                </ol>
+                <div class="success">✅ You should see a confirmation page with your token number</div>
+            </div>
+        </div>
+
+        <h2>🧪 Full Test Suite (15 minutes)</h2>
+        
+        <div class="step">
+            <div class="step-title">Use Automated Test Page</div>
+            <div class="step-content">
+                Open <a href="test-booking-complete.html" target="_blank">test-booking-complete.html</a> for automated testing of all features:
+                <ul>
+                    <li>Backend connection test</li>
+                    <li>Slot search test</li>
+                    <li>User registration test</li>
+                    <li>Login test</li>
+                    <li>Appointment booking test</li>
+                    <li>View appointments test</li>
+                </ul>
+                <p>Click each "Test" button to verify that component works.</p>
+            </div>
+        </div>
+
+        <h2>🔍 Manual Testing Scenarios</h2>
+
+        <div class="step">
+            <div class="step-title">Scenario 1: Normal Appointment Booking</div>
+            <div class="step-content">
+                <div class="test-checklist">
+                    <div class="checklist-item">
+                        <input type="checkbox" class="checkbox"> 
+                        Open <a href="User sign up.html" target="_blank">User sign up.html</a>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" class="checkbox">
+                        Register with email and password
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" class="checkbox">
+                        Open <a href="User login.html" target="_blank">User login.html</a>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" class="checkbox">
+                        Login with same credentials
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" class="checkbox">
+                        Open <a href="Book Appointment.html" target="_blank">Book Appointment.html</a>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" class="checkbox">
+                        Search for slots (Date: Tomorrow, Location: Delhi)
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" class="checkbox">
+                        Select available slot
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" class="checkbox">
+                        Enter patient details and click Book
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" class="checkbox">
+                        Verify confirmation page with token number
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-title">Scenario 2: Emergency Booking</div>
+            <div class="step-content">
+                <div class="test-checklist">
+                    <div class="checklist-item">
+                        <input type="checkbox" class="checkbox">
+                        Open <a href="Book Appointment.html" target="_blank">Book Appointment.html</a>
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" class="checkbox">
+                        Search for available slots
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" class="checkbox">
+                        Click "🚨 Emergency Booking" button
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" class="checkbox">
+                        Fill emergency reason (e.g., "Severe pain")
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" class="checkbox">
+                        Book appointment normally
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" class="checkbox">
+                        Verify "🚨 EMERGENCY - HIGH PRIORITY" badge on confirmation
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-title">Scenario 3: Invalid Input Validation</div>
+            <div class="step-content">
+                <div class="test-checklist">
+                    <div class="checklist-item">
+                        <input type="checkbox" class="checkbox">
+                        Try entering numbers in patient name → Should be rejected
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" class="checkbox">
+                        Try entering non-numeric in phone → Should be rejected
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" class="checkbox">
+                        Try booking with empty name → Should show error
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" class="checkbox">
+                        Try booking with invalid phone length → Should show error
+                    </div>
+                    <div class="checklist-item">
+                        <input type="checkbox" class="checkbox">
+                        Try booking without selecting slot → Should show error
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h2>📋 Available Test Data</h2>
+
+        <div class="step">
+            <div class="step-title">Test User Account</div>
+            <div class="code">
+Email: testuser@example.com
+Password: password123
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-title">Test Appointment Slots (Available for 2025-12-29)</div>
+            <ul>
+                <li><strong>City Hospital</strong> - Dr. Rajesh Kumar (Cardiology) - Delhi - 09:00 AM</li>
+                <li><strong>Apollo</strong> - Dr. Priya Singh (Orthopedics) - Mumbai - 02:00 PM</li>
+                <li>Plus 2 additional slots from previous dates</li>
+            </ul>
+        </div>
+
+        <h2>🐛 Bug Fix Verification</h2>
+
+        <div class="step">
+            <div class="step-title">Verify the Remaining Slots Fix</div>
+            <div class="step-content">
+                <p>After booking an appointment, check the confirmation page shows:</p>
+                <div class="code">Remaining Slots: [NUMBER] (not undefined)</div>
+                <div class="success">✅ This was the main bug that was fixed!</div>
+            </div>
+        </div>
+
+        <h2>🛠️ Troubleshooting</h2>
+
+        <div class="step">
+            <div class="step-title">Problem: "Backend not running"</div>
+            <div class="step-content">
+                <p><strong>Solution:</strong> Open terminal and run:</p>
+                <div class="code">cd backend
+node server.js</div>
+                <p>Make sure you see: "✅ Server running on http://localhost:5000"</p>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-title">Problem: "No slots found"</div>
+            <div class="step-content">
+                <p><strong>Solution:</strong> The test slots are for 2025-12-29. Make sure you:</p>
+                <ul>
+                    <li>Select tomorrow's date (2025-12-29 or later)</li>
+                    <li>Enter location: "Delhi" or "Mumbai"</li>
+                    <li>Click "Search Available Slots"</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="step">
+            <div class="step-title">Problem: "Not authenticated"</div>
+            <div class="step-content">
+                <p><strong>Solution:</strong> You must login before booking:</p>
+                <ol>
+                    <li>Go to <a href="User login.html" target="_blank">User login.html</a></li>
+                    <li>Login with testuser@example.com / password123</li>
+                    <li>Then open Book Appointment page</li>
+                </ol>
+            </div>
+        </div>
+
+        <h2>📞 Key Pages & Resources</h2>
+
+        <div class="links">
+            <h3 style="margin-top: 0; color: #333;">Pages</h3>
+            <a href="index.html" target="_blank">🏠 Home Page</a>
+            <a href="User sign up.html" target="_blank">📝 User Registration</a>
+            <a href="User login.html" target="_blank">🔑 User Login</a>
+            <a href="Book Appointment.html" target="_blank">📅 Book Appointment</a>
+            <a href="view appointments.html" target="_blank">📋 View Appointments</a>
+            <a href="test-booking-complete.html" target="_blank">🧪 Automated Tests</a>
+            
+            <h3 style="margin-top: 20px; color: #333;">Documentation</h3>
+            <a href="BOOKING-SYSTEM-TEST-REPORT.md" target="_blank">📊 Test Report</a>
+            <a href="../BUG-FIX-REPORT.md" target="_blank">🐛 Bug Fix Details</a>
+            <a href="CONSOLE-QUICK-TEST.js" target="_blank">⚡ Console Quick Test</a>
+        </div>
+
+        <h2>✨ Features to Test</h2>
+
+        <div class="test-checklist">
+            <div class="checklist-item">
+                <input type="checkbox" class="checkbox">
+                <span>User Registration & Authentication</span>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" class="checkbox">
+                <span>Slot Search with Filters (Date, Location, Specialization)</span>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" class="checkbox">
+                <span>Appointment Booking</span>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" class="checkbox">
+                <span>Token Number Generation</span>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" class="checkbox">
+                <span>Emergency Booking with Priority</span>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" class="checkbox">
+                <span>Form Validation (Name, Phone, Slot)</span>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" class="checkbox">
+                <span>Error Handling & Messages</span>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" class="checkbox">
+                <span>Confirmation Page Display</span>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" class="checkbox">
+                <span>View My Appointments</span>
+            </div>
+            <div class="checklist-item">
+                <input type="checkbox" class="checkbox">
+                <span>Remaining Slots Display (Bug Fix)</span>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 2px solid #eee;">
+            <p style="color: #666;">
+                <strong>Status:</strong> ✅ System Ready for Testing<br>
+                <strong>Last Updated:</strong> December 28, 2025
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Make checkboxes clickable
+        document.querySelectorAll('.checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                this.parentElement.style.opacity = this.checked ? '0.6' : '1';
+            });
+        });
+    </script>
+</body>
+</html>

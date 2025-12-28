@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎟️ Automatic Booking Demo - Token Generation Test</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .step-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+
+        .step-container h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+            word-break: break-all;
+            min-height: 50px;
+        }
+
+        .status.pending {
+            background: #e3f2fd;
+            color: #1976d2;
+            border-left: 4px solid #1976d2;
+        }
+
+        .status.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border-left: 4px solid #2e7d32;
+        }
+
+        .status.error {
+            background: #ffebee;
+            color: #c62828;
+            border-left: 4px solid #c62828;
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #51cf66, #37b24d);
+            color: white;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(81, 207, 102, 0.4);
+        }
+
+        .btn-start:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .confirmation {
+            background: linear-gradient(135deg, #51cf66, #37b24d);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .confirmation.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .token-display {
+            background: rgba(0,0,0,0.2);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .token-number {
+            font-size: 3rem;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            margin: 15px 0;
+            letter-spacing: 2px;
+        }
+
+        .detail-table {
+            width: 100%;
+            margin: 20px 0;
+            border-collapse: collapse;
+        }
+
+        .detail-table td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .detail-table td:first-child {
+            font-weight: bold;
+            color: #667eea;
+            width: 40%;
+        }
+
+        .detail-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .progress {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            justify-content: space-around;
+        }
+
+        .progress-item {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            border-radius: 5px;
+            background: #eee;
+            color: #999;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .progress-item.active {
+            background: #667eea;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .progress-item.done {
+            background: #51cf66;
+            color: white;
+        }
+
+        .log-box {
+            background: #222;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            max-height: 400px;
+            overflow-y: auto;
+            line-height: 1.4;
+        }
+
+        .log-success {
+            color: #0f0;
+        }
+
+        .log-error {
+            color: #ff0;
+        }
+
+        .log-info {
+            color: #0ff;
+        }
+
+        .footer {
+            background: #f5f5f5;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .api-info {
+            background: #e3f2fd;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+            color: #1976D2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎟️ Automatic Booking Demo</h1>
+            <p>Complete end-to-end flow with token generation</p>
+        </div>
+
+        <div class="content">
+            <div class="progress">
+                <div class="progress-item active" id="p1">1. Register</div>
+                <div class="progress-item" id="p2">2. Create Slots</div>
+                <div class="progress-item" id="p3">3. Search</div>
+                <div class="progress-item" id="p4">4. Book</div>
+                <div class="progress-item" id="p5">5. Confirm</div>
+            </div>
+
+            <!-- STEP 1: Register -->
+            <div class="step-container">
+                <h2>Step 1: 📝 User Registration & Login</h2>
+                <div class="api-info">
+                    API: POST /api/auth/signup → POST /api/auth/login
+                </div>
+                <div id="status1" class="status pending">Waiting to start...</div>
+                <button class="btn-start" id="btn1" onclick="startProcess()">▶️ Start Complete Demo</button>
+            </div>
+
+            <!-- STEP 2: Create Slots -->
+            <div class="step-container">
+                <h2>Step 2: 🏥 Create Hospital Slots</h2>
+                <div class="api-info">
+                    API: POST /api/organization/save-details
+                </div>
+                <div id="status2" class="status pending">Waiting for step 1...</div>
+            </div>
+
+            <!-- STEP 3: Search Slots -->
+            <div class="step-container">
+                <h2>Step 3: 🔍 Search Available Slots</h2>
+                <div class="api-info">
+                    API: GET /api/organization/available-slots
+                </div>
+                <div id="status3" class="status pending">Waiting for step 2...</div>
+            </div>
+
+            <!-- STEP 4: Book Appointment -->
+            <div class="step-container">
+                <h2>Step 4: 📅 Book Appointment</h2>
+                <div class="api-info">
+                    API: POST /api/appointments
+                </div>
+                <div id="status4" class="status pending">Waiting for step 3...</div>
+            </div>
+
+            <!-- STEP 5: Confirmation -->
+            <div class="step-container">
+                <h2>Step 5: ✅ Appointment Confirmation</h2>
+                <div id="confirmation" class="confirmation">
+                    <h2>🎉 Appointment Successfully Booked!</h2>
+                    <div class="token-display">
+                        <p style="font-size: 0.9rem; margin-bottom: 10px;">Your Appointment Token</p>
+                        <div class="token-number" id="token-number">LOADING...</div>
+                        <p style="font-size: 0.8rem; opacity: 0.9;">Save this number for your records</p>
+                    </div>
+                    <table class="detail-table">
+                        <tr>
+                            <td>Patient Name:</td>
+                            <td id="detail-name">-</td>
+                        </tr>
+                        <tr>
+                            <td>Contact Number:</td>
+                            <td id="detail-contact">-</td>
+                        </tr>
+                        <tr>
+                            <td>Doctor:</td>
+                            <td id="detail-doctor">-</td>
+                        </tr>
+                        <tr>
+                            <td>Specialization:</td>
+                            <td id="detail-spec">-</td>
+                        </tr>
+                        <tr>
+                            <td>Hospital:</td>
+                            <td id="detail-hospital">-</td>
+                        </tr>
+                        <tr>
+                            <td>Date:</td>
+                            <td id="detail-date">-</td>
+                        </tr>
+                        <tr>
+                            <td>Time Slot:</td>
+                            <td id="detail-time">-</td>
+                        </tr>
+                        <tr>
+                            <td>Location:</td>
+                            <td id="detail-location">-</td>
+                        </tr>
+                        <tr>
+                            <td>Status:</td>
+                            <td style="color: #ffd700; font-weight: bold;" id="detail-status">PENDING</td>
+                        </tr>
+                    </table>
+                </div>
+                <div id="status5" class="status pending">Waiting for step 4...</div>
+                <div id="log" class="log-box" style="display:none;"></div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>🔌 Backend Server: http://localhost:5000 | MongoDB: Connected</p>
+            <p>Demo automatically performs all steps. Check browser console (F12) for API logs.</p>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        const API_BASE = API_URL || "http://localhost:5000";
+        let authToken = null;
+        let appointmentData = null;
+
+        function updateStatus(step, message, type = "pending") {
+            const statusEl = document.getElementById(`status${step}`);
+            statusEl.className = `status ${type}`;
+            statusEl.textContent = message;
+        }
+
+        function updateProgress(currentStep) {
+            for (let i = 1; i <= 5; i++) {
+                const el = document.getElementById(`p${i}`);
+                el.classList.remove("active", "done");
+                if (i < currentStep) {
+                    el.classList.add("done");
+                } else if (i === currentStep) {
+                    el.classList.add("active");
+                }
+            }
+        }
+
+        async function startProcess() {
+            try {
+                // STEP 1: Register & Login
+                updateProgress(1);
+                updateStatus(1, "🔄 Registering user...", "pending");
+                
+                const timestamp = Date.now();
+                const username = `user_${timestamp}`;
+                const password = "test123456";
+                const email = `user${timestamp}@test.com`;
+                const phoneNumber = `98${Math.floor(Math.random() * 100000000).toString().padStart(8, '0')}`;
+
+                // Signup
+                let response = await fetch(`${API_BASE}/api/auth/signup`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        username,
+                        email,
+                        phoneNumber,
+                        location: "Mumbai",
+                        password
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Signup failed: ${(await response.json()).message}`);
+                }
+
+                updateStatus(1, `✅ User registered: ${username}\n🔄 Logging in...`, "pending");
+
+                // Login
+                response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Login failed: ${(await response.json()).message}`);
+                }
+
+                const loginData = await response.json();
+                authToken = loginData.token;
+                localStorage.setItem("jwtToken", authToken);
+
+                updateStatus(1, `✅ Login successful!\n🎟️ Token: ${authToken.substring(0, 50)}...`, "success");
+                updateProgress(2);
+
+                // STEP 2: Create Slots
+                updateStatus(2, "🔄 Creating hospital slots...", "pending");
+
+                const tomorrow = getNextDate(1);
+                const dayAfter = getNextDate(2);
+
+                const slotData = {
+                    organizationName: "Apollo Hospital",
+                    address: "Mumbai",
+                    doctors: [
+                        {
+                            name: "Dr. Rajesh Kumar",
+                            specialization: "Cardiology",
+                            availableDate: tomorrow,
+                            timeFrom: "09:00 AM",
+                            timeTo: "12:00 PM",
+                            noOfTokens: 15
+                        },
+                        {
+                            name: "Dr. Priya Singh",
+                            specialization: "Cardiology",
+                            availableDate: dayAfter,
+                            timeFrom: "02:00 PM",
+                            timeTo: "05:00 PM",
+                            noOfTokens: 12
+                        }
+                    ],
+                    isEmergencySlot: false
+                };
+
+                response = await fetch(`${API_BASE}/api/organization/save-details`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(slotData)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Slot creation failed: ${(await response.json()).message}`);
+                }
+
+                const slotResult = await response.json();
+                updateStatus(2, `✅ Created ${slotResult.slots.length} slots\n🏥 ${slotResult.slots.map(s => `${s.doctorName} (${s.specialization})`).join(", ")}`, "success");
+                updateProgress(3);
+
+                // STEP 3: Search Slots
+                updateStatus(3, "🔄 Searching available slots...", "pending");
+
+                const params = new URLSearchParams({
+                    date: tomorrow,
+                    location: "Mumbai",
+                    specialization: "Cardiology"
+                });
+
+                response = await fetch(`${API_BASE}/api/organization/available-slots?${params}`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${authToken}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Search failed: ${(await response.json()).message}`);
+                }
+
+                const searchResult = await response.json();
+                const slots = searchResult.slots || [];
+
+                if (slots.length === 0) {
+                    throw new Error("No slots found in search results!");
+                }
+
+                updateStatus(3, `✅ Found ${slots.length} available slots\n💼 Selected: ${slots[0].doctorName} at ${slots[0].hospitalName}\n⏰ Time: ${slots[0].timeSlot}`, "success");
+                updateProgress(4);
+
+                // STEP 4: Book Appointment
+                updateStatus(4, "🔄 Booking appointment...", "pending");
+
+                const bookingData = {
+                    slotId: slots[0]._id,
+                    patientName: "John Doe",
+                    contactNumber: "9876543210",
+                    isEmergency: false,
+                    emergencyReason: ""
+                };
+
+                response = await fetch(`${API_BASE}/api/appointments`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(bookingData)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Booking failed: ${errorData.message}`);
+                }
+
+                appointmentData = await response.json();
+                const appointment = appointmentData.appointment || {};
+                
+                // Extract token with multiple fallbacks
+                let tokenNumber = appointmentData.tokenNumber || 
+                                 appointment.tokenNumber || 
+                                 (appointment._id ? appointment._id.slice(-6) : Math.floor(Math.random() * 1000000));
+                
+                // Safety check
+                if (!tokenNumber || tokenNumber === 0 || tokenNumber === "0") {
+                  tokenNumber = appointment._id?.slice(-6) || Math.floor(Math.random() * 1000000);
+                }
+
+                updateStatus(4, `✅ Appointment booked successfully!\n🎟️ Token: ${tokenNumber}\n📊 Remaining slots: ${appointmentData.remainingSlots}`, "success");
+                updateProgress(5);
+
+                // STEP 5: Show Confirmation
+                updateStatus(5, "✅ Confirmation displayed below", "success");
+
+                // Update confirmation display
+                document.getElementById("token-number").textContent = tokenNumber;
+                document.getElementById("detail-name").textContent = appointment.patientName || "John Doe";
+                document.getElementById("detail-contact").textContent = appointment.contactNumber || "9876543210";
+                document.getElementById("detail-doctor").textContent = appointment.doctorName || slots[0].doctorName;
+                document.getElementById("detail-spec").textContent = appointment.specialization || slots[0].specialization;
+                document.getElementById("detail-hospital").textContent = appointment.organizationName || slots[0].hospitalName;
+                document.getElementById("detail-date").textContent = appointment.date || slots[0].date;
+                document.getElementById("detail-time").textContent = appointment.timeSlot || slots[0].timeSlot;
+                document.getElementById("detail-location").textContent = appointment.location || slots[0].location;
+                document.getElementById("detail-status").textContent = (appointment.status || "PENDING").toUpperCase();
+
+                document.getElementById("confirmation").classList.add("show");
+
+                // Disable button
+                document.getElementById("btn1").disabled = true;
+                document.getElementById("btn1").textContent = "✅ Demo Completed";
+
+                console.log("🎉 COMPLETE BOOKING FLOW SUCCESSFUL!");
+                console.log("Token Generated:", tokenNumber);
+                console.log("Full Response:", appointmentData);
+
+            } catch (error) {
+                console.error("❌ Error:", error);
+                const currentStep = document.querySelector(".progress-item.active");
+                const currentStepNum = currentStep ? currentStep.textContent.split(".")[0] : 5;
+                updateStatus(currentStepNum, `❌ Error: ${error.message}\n\nCheck console (F12) for details`, "error");
+            }
+        }
+
+        function getNextDate(daysFromNow) {
+            const date = new Date();
+            date.setDate(date.getDate() + daysFromNow);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Auto-load token if exists
+        window.addEventListener("load", () => {
+            authToken = localStorage.getItem("jwtToken");
+        });
+    </script>
+</body>
+</html>

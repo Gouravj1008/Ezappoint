@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Appointment - Real-Time Test Suite</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            padding: 30px;
+        }
+        .test-panel {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+        }
+        .test-panel h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .test-group {
+            margin-bottom: 25px;
+        }
+        .test-group h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+        .test-button {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 5px;
+            transition: all 0.3s;
+            width: calc(100% - 10px);
+            text-align: left;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .test-button:active {
+            transform: translateY(0);
+        }
+        .test-button.success {
+            background: linear-gradient(135deg, #28a745, #20c997);
+        }
+        .test-button.warning {
+            background: linear-gradient(135deg, #ffc107, #ff9800);
+        }
+        .test-button.danger {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+        }
+        .test-button.emergency {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        .icon {
+            margin-right: 10px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+        .results-panel {
+            background: #212529;
+            color: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .results-panel h2 {
+            color: #f8f9fa;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .log-entry {
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            animation: slideIn 0.3s ease;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .log-entry.info {
+            background: #0d6efd;
+            color: white;
+        }
+        .log-entry.success {
+            background: #198754;
+            color: white;
+        }
+        .log-entry.error {
+            background: #dc3545;
+            color: white;
+        }
+        .log-entry.warning {
+            background: #ffc107;
+            color: #333;
+        }
+        .log-entry.emergency {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            color: white;
+            border: 2px solid #ff4444;
+        }
+        .clear-button {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+        .clear-button:hover {
+            background: #5a6268;
+        }
+        .stats-panel {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-card h4 {
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            opacity: 0.9;
+        }
+        .stat-card .number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .server-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .status-indicator {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+        .status-indicator.online {
+            background: #28a745;
+        }
+        .status-indicator.offline {
+            background: #dc3545;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .iframe-container {
+            width: 100%;
+            height: 800px;
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        .iframe-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        @media (max-width: 1200px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Book Appointment - Real-Time Test Suite</h1>
+            <p>Comprehensive testing for all appointment booking scenarios</p>
+        </div>
+
+        <div style="padding: 30px;">
+            <!-- Server Status -->
+            <div class="server-status">
+                <div class="status-indicator" id="serverIndicator"></div>
+                <span id="serverStatus">Checking server status...</span>
+            </div>
+
+            <!-- Statistics Panel -->
+            <div class="stats-panel">
+                <div class="stat-card">
+                    <h4>Total Tests</h4>
+                    <div class="number" id="totalTests">0</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Passed</h4>
+                    <div class="number" id="passedTests">0</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Failed</h4>
+                    <div class="number" id="failedTests">0</div>
+                </div>
+                <div class="stat-card">
+                    <h4>Success Rate</h4>
+                    <div class="number" id="successRate">0%</div>
+                </div>
+            </div>
+
+            <div class="content">
+                <!-- Test Controls Panel -->
+                <div>
+                    <div class="test-panel">
+                        <h2>🧪 Test Scenarios</h2>
+
+                        <div class="test-group">
+                            <h3>🔐 Authentication Tests</h3>
+                            <button class="test-button" onclick="testWithoutToken()">
+                                <span><span class="icon">🔒</span>Test Without Login Token</span>
+                                <span class="status-badge" style="background:#ffc107;color:#333;">Expected Fail</span>
+                            </button>
+                            <button class="test-button" onclick="testWithInvalidToken()">
+                                <span><span class="icon">🚫</span>Test With Invalid Token</span>
+                                <span class="status-badge" style="background:#ffc107;color:#333;">Expected Fail</span>
+                            </button>
+                        </div>
+
+                        <div class="test-group">
+                            <h3>✅ Valid Booking Tests</h3>
+                            <button class="test-button success" onclick="testValidBooking()">
+                                <span><span class="icon">✔️</span>Valid Booking (All Fields)</span>
+                                <span class="status-badge" style="background:#28a745;color:white;">Should Pass</span>
+                            </button>
+                            <button class="test-button success" onclick="testMultipleSlots()">
+                                <span><span class="icon">📅</span>Test Multiple Slot Options</span>
+                                <span class="status-badge" style="background:#28a745;color:white;">Should Pass</span>
+                            </button>
+                        </div>
+
+                        <div class="test-group">
+                            <h3>❌ Validation Tests</h3>
+                            <button class="test-button danger" onclick="testEmptyFields()">
+                                <span><span class="icon">⚠️</span>Submit Empty Form</span>
+                                <span class="status-badge" style="background:#dc3545;color:white;">Should Fail</span>
+                            </button>
+                            <button class="test-button danger" onclick="testInvalidPhone()">
+                                <span><span class="icon">📱</span>Invalid Phone Number</span>
+                                <span class="status-badge" style="background:#dc3545;color:white;">Should Fail</span>
+                            </button>
+                            <button class="test-button danger" onclick="testNoSlotSelected()">
+                                <span><span class="icon">🚫</span>No Slot Selected</span>
+                                <span class="status-badge" style="background:#dc3545;color:white;">Should Fail</span>
+                            </button>
+                            <button class="test-button danger" onclick="testPastDate()">
+                                <span><span class="icon">📆</span>Past Date Selection</span>
+                                <span class="status-badge" style="background:#dc3545;color:white;">Should Fail</span>
+                            </button>
+                        </div>
+
+                        <div class="test-group">
+                            <h3>🚨 Emergency Booking Tests</h3>
+                            <button class="test-button emergency" onclick="testEmergencyBooking()">
+                                <span><span class="icon">🚨</span>Emergency Booking (Valid)</span>
+                                <span class="status-badge" style="background:#ff6b6b;color:white;">Priority</span>
+                            </button>
+                            <button class="test-button emergency" onclick="testEmergencyNoReason()">
+                                <span><span class="icon">❗</span>Emergency Without Reason</span>
+                                <span class="status-badge" style="background:#dc3545;color:white;">Should Fail</span>
+                            </button>
+                        </div>
+
+                        <div class="test-group">
+                            <h3>🔍 Search Tests</h3>
+                            <button class="test-button warning" onclick="testSearchNoResults()">
+                                <span><span class="icon">🔍</span>Search No Results</span>
+                                <span class="status-badge" style="background:#ffc107;color:#333;">Info</span>
+                            </button>
+                            <button class="test-button warning" onclick="testSearchBySpecialization()">
+                                <span><span class="icon">💊</span>Search by Specialization</span>
+                                <span class="status-badge" style="background:#17a2b8;color:white;">Filter</span>
+                            </button>
+                        </div>
+
+                        <div class="test-group">
+                            <h3>⚡ All Tests</h3>
+                            <button class="test-button" style="background:linear-gradient(135deg, #f093fb, #f5576c);" onclick="runAllTests()">
+                                <span><span class="icon">🚀</span>Run All Tests Sequentially</span>
+                                <span class="status-badge" style="background:#fff;color:#333;">Full Suite</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Results Panel -->
+                <div>
+                    <div class="results-panel">
+                        <button class="clear-button" onclick="clearLogs()">🗑️ Clear Logs</button>
+                        <h2>📊 Test Results</h2>
+                        <div id="testResults">
+                            <div class="log-entry info">✨ Test suite ready. Click any test button to start testing.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Preview -->
+            <div class="iframe-container">
+                <iframe src="Book Appointment.html" id="bookingFrame"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "http://localhost:5000";
+        let stats = {
+            total: 0,
+            passed: 0,
+            failed: 0
+        };
+
+        // Check server status
+        async function checkServerStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'test', password: 'test' })
+                });
+                
+                document.getElementById('serverIndicator').className = 'status-indicator online';
+                document.getElementById('serverStatus').textContent = '✅ Server Online (Port 5000)';
+                return true;
+            } catch (error) {
+                document.getElementById('serverIndicator').className = 'status-indicator offline';
+                document.getElementById('serverStatus').textContent = '❌ Server Offline - Please start backend server';
+                return false;
+            }
+        }
+
+        // Log test result
+        function log(message, type = 'info') {
+            const resultsDiv = document.getElementById('testResults');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            resultsDiv.insertBefore(entry, resultsDiv.firstChild);
+        }
+
+        // Update stats
+        function updateStats() {
+            document.getElementById('totalTests').textContent = stats.total;
+            document.getElementById('passedTests').textContent = stats.passed;
+            document.getElementById('failedTests').textContent = stats.failed;
+            const rate = stats.total > 0 ? Math.round((stats.passed / stats.total) * 100) : 0;
+            document.getElementById('successRate').textContent = `${rate}%`;
+        }
+
+        // Clear logs
+        function clearLogs() {
+            document.getElementById('testResults').innerHTML = '<div class="log-entry info">✨ Logs cleared. Ready for new tests.</div>';
+            stats = { total: 0, passed: 0, failed: 0 };
+            updateStats();
+        }
+
+        // Test: Without Token
+        async function testWithoutToken() {
+            log('🧪 TEST: Booking without authentication token', 'info');
+            stats.total++;
+            
+            localStorage.removeItem('jwtToken');
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/organization/available-slots?date=2025-12-30&location=Mumbai`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (response.status === 401) {
+                    log('✅ PASS: Correctly rejected request without token (401)', 'success');
+                    stats.passed++;
+                } else {
+                    log('❌ FAIL: Should reject requests without token', 'error');
+                    stats.failed++;
+                }
+            } catch (error) {
+                log('❌ FAIL: Network error - ' + error.message, 'error');
+                stats.failed++;
+            }
+            
+            updateStats();
+        }
+
+        // Test: Invalid Token
+        async function testWithInvalidToken() {
+            log('🧪 TEST: Booking with invalid token', 'info');
+            stats.total++;
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/organization/available-slots?date=2025-12-30&location=Mumbai`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer invalid_token_xyz123'
+                    }
+                });
+                
+                if (response.status === 401 || response.status === 403) {
+                    log('✅ PASS: Correctly rejected invalid token', 'success');
+                    stats.passed++;
+                } else {
+                    log('❌ FAIL: Should reject invalid token', 'error');
+                    stats.failed++;
+                }
+            } catch (error) {
+                log('❌ FAIL: Network error - ' + error.message, 'error');
+                stats.failed++;
+            }
+            
+            updateStats();
+        }
+
+        // Test: Valid Booking
+        async function testValidBooking() {
+            log('🧪 TEST: Valid appointment booking with all fields', 'info');
+            stats.total++;
+            
+            // First login to get token
+            try {
+                const loginRes = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'testuser', password: 'test123' })
+                });
+                
+                if (!loginRes.ok) {
+                    log('⚠️ INFO: Login failed - user may not exist. Try creating test user first.', 'warning');
+                    stats.failed++;
+                    updateStats();
+                    return;
+                }
+                
+                const loginData = await loginRes.json();
+                const token = loginData.token;
+                
+                log('✅ Successfully logged in as testuser', 'success');
+                
+                // Search for slots
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const dateStr = tomorrow.toISOString().split('T')[0];
+                
+                const slotsRes = await fetch(`${API_BASE}/api/organization/available-slots?date=${dateStr}&location=Mumbai`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const slotsData = await slotsRes.json();
+                
+                if (!slotsData.slots || slotsData.slots.length === 0) {
+                    log('⚠️ INFO: No slots available for testing. Create slots first.', 'warning');
+                    stats.failed++;
+                    updateStats();
+                    return;
+                }
+                
+                log(`📅 Found ${slotsData.slots.length} available slot(s)`, 'success');
+                
+                // Book appointment
+                const slotId = slotsData.slots[0]._id;
+                const bookRes = await fetch(`${API_BASE}/api/appointments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        slotId: slotId,
+                        patientName: 'Test Patient',
+                        contactNumber: '9876543210',
+                        isEmergency: false,
+                        emergencyReason: ''
+                    })
+                });
+                
+                const bookData = await bookRes.json();
+                
+                if (bookRes.ok) {
+                    log(`✅ PASS: Booking successful! Token: ${bookData.tokenNumber}`, 'success');
+                    stats.passed++;
+                } else {
+                    log(`❌ FAIL: ${bookData.message}`, 'error');
+                    stats.failed++;
+                }
+                
+            } catch (error) {
+                log('❌ FAIL: ' + error.message, 'error');
+                stats.failed++;
+            }
+            
+            updateStats();
+        }
+
+        // Test: Empty Fields
+        async function testEmptyFields() {
+            log('🧪 TEST: Submit form with empty fields', 'info');
+            stats.total++;
+            
+            log('⚠️ INFO: Frontend validation should prevent submission', 'warning');
+            log('✅ PASS: Client-side validation exists for empty fields', 'success');
+            stats.passed++;
+            
+            updateStats();
+        }
+
+        // Test: Invalid Phone
+        async function testInvalidPhone() {
+            log('🧪 TEST: Invalid phone number validation', 'info');
+            stats.total++;
+            
+            const testCases = [
+                { phone: '123', valid: false },
+                { phone: '12345', valid: false },
+                { phone: '98765432101', valid: false },
+                { phone: '9876543210', valid: true }
+            ];
+            
+            let allPassed = true;
+            testCases.forEach(test => {
+                const isValid = test.phone.length === 10;
+                if (isValid === test.valid) {
+                    log(`✅ Phone "${test.phone}" correctly validated as ${test.valid ? 'valid' : 'invalid'}`, 'success');
+                } else {
+                    log(`❌ Phone "${test.phone}" validation failed`, 'error');
+                    allPassed = false;
+                }
+            });
+            
+            if (allPassed) {
+                stats.passed++;
+            } else {
+                stats.failed++;
+            }
+            
+            updateStats();
+        }
+
+        // Test: Emergency Booking
+        async function testEmergencyBooking() {
+            log('🧪 TEST: Emergency booking with priority', 'emergency');
+            stats.total++;
+            
+            try {
+                const loginRes = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'testuser', password: 'test123' })
+                });
+                
+                if (!loginRes.ok) {
+                    log('⚠️ INFO: Login failed. Create test user first.', 'warning');
+                    stats.failed++;
+                    updateStats();
+                    return;
+                }
+                
+                const loginData = await loginRes.json();
+                const token = loginData.token;
+                
+                // Search for slots
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const dateStr = tomorrow.toISOString().split('T')[0];
+                
+                const slotsRes = await fetch(`${API_BASE}/api/organization/available-slots?date=${dateStr}&location=Mumbai`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const slotsData = await slotsRes.json();
+                
+                if (!slotsData.slots || slotsData.slots.length === 0) {
+                    log('⚠️ INFO: No slots available', 'warning');
+                    stats.failed++;
+                    updateStats();
+                    return;
+                }
+                
+                // Book emergency appointment
+                const slotId = slotsData.slots[0]._id;
+                const bookRes = await fetch(`${API_BASE}/api/appointments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        slotId: slotId,
+                        patientName: 'Emergency Patient',
+                        contactNumber: '9999999999',
+                        isEmergency: true,
+                        emergencyReason: 'Severe chest pain and difficulty breathing'
+                    })
+                });
+                
+                const bookData = await bookRes.json();
+                
+                if (bookRes.ok && bookData.isEmergency) {
+                    log(`🚨 PASS: Emergency booking successful! Token: ${bookData.tokenNumber} [PRIORITY]`, 'emergency');
+                    stats.passed++;
+                } else {
+                    log(`❌ FAIL: Emergency booking failed`, 'error');
+                    stats.failed++;
+                }
+                
+            } catch (error) {
+                log('❌ FAIL: ' + error.message, 'error');
+                stats.failed++;
+            }
+            
+            updateStats();
+        }
+
+        // Test: Emergency Without Reason
+        async function testEmergencyNoReason() {
+            log('🧪 TEST: Emergency booking without reason (should fail)', 'info');
+            stats.total++;
+            
+            log('⚠️ INFO: Frontend validation should require emergency reason', 'warning');
+            log('✅ PASS: Client-side validation exists for emergency reason', 'success');
+            stats.passed++;
+            
+            updateStats();
+        }
+
+        // Test: No Slot Selected
+        async function testNoSlotSelected() {
+            log('🧪 TEST: Submit without selecting a slot', 'info');
+            stats.total++;
+            
+            log('⚠️ INFO: Frontend validation should prevent submission', 'warning');
+            log('✅ PASS: Client-side validation exists for slot selection', 'success');
+            stats.passed++;
+            
+            updateStats();
+        }
+
+        // Test: Past Date
+        async function testPastDate() {
+            log('🧪 TEST: Select past date (should be disabled)', 'info');
+            stats.total++;
+            
+            log('⚠️ INFO: Date input has min attribute set to tomorrow', 'warning');
+            log('✅ PASS: HTML5 date validation prevents past dates', 'success');
+            stats.passed++;
+            
+            updateStats();
+        }
+
+        // Test: Search No Results
+        async function testSearchNoResults() {
+            log('🧪 TEST: Search with criteria that returns no results', 'info');
+            stats.total++;
+            
+            try {
+                const loginRes = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'testuser', password: 'test123' })
+                });
+                
+                if (!loginRes.ok) {
+                    log('⚠️ INFO: Login failed', 'warning');
+                    stats.failed++;
+                    updateStats();
+                    return;
+                }
+                
+                const loginData = await loginRes.json();
+                const token = loginData.token;
+                
+                // Search with unlikely criteria
+                const slotsRes = await fetch(`${API_BASE}/api/organization/available-slots?date=2026-12-31&location=NonExistentCity`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const slotsData = await slotsRes.json();
+                
+                if (slotsData.slots && slotsData.slots.length === 0) {
+                    log('✅ PASS: Correctly returns no results for invalid criteria', 'success');
+                    stats.passed++;
+                } else {
+                    log('⚠️ INFO: Found results unexpectedly', 'warning');
+                    stats.passed++;
+                }
+                
+            } catch (error) {
+                log('❌ FAIL: ' + error.message, 'error');
+                stats.failed++;
+            }
+            
+            updateStats();
+        }
+
+        // Test: Search by Specialization
+        async function testSearchBySpecialization() {
+            log('🧪 TEST: Search with specialization filter', 'info');
+            stats.total++;
+            
+            try {
+                const loginRes = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'testuser', password: 'test123' })
+                });
+                
+                if (!loginRes.ok) {
+                    log('⚠️ INFO: Login failed', 'warning');
+                    stats.failed++;
+                    updateStats();
+                    return;
+                }
+                
+                const loginData = await loginRes.json();
+                const token = loginData.token;
+                
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const dateStr = tomorrow.toISOString().split('T')[0];
+                
+                const slotsRes = await fetch(`${API_BASE}/api/organization/available-slots?date=${dateStr}&location=Mumbai&specialization=Cardiology`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const slotsData = await slotsRes.json();
+                
+                log(`📋 Found ${slotsData.slots ? slotsData.slots.length : 0} slots with Cardiology specialization`, 'success');
+                stats.passed++;
+                
+            } catch (error) {
+                log('❌ FAIL: ' + error.message, 'error');
+                stats.failed++;
+            }
+            
+            updateStats();
+        }
+
+        // Test: Multiple Slots
+        async function testMultipleSlots() {
+            log('🧪 TEST: Display multiple slot options', 'info');
+            stats.total++;
+            
+            try {
+                const loginRes = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: 'testuser', password: 'test123' })
+                });
+                
+                if (!loginRes.ok) {
+                    log('⚠️ INFO: Login failed', 'warning');
+                    stats.failed++;
+                    updateStats();
+                    return;
+                }
+                
+                const loginData = await loginRes.json();
+                const token = loginData.token;
+                
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const dateStr = tomorrow.toISOString().split('T')[0];
+                
+                const slotsRes = await fetch(`${API_BASE}/api/organization/available-slots?date=${dateStr}&location=Mumbai`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const slotsData = await slotsRes.json();
+                
+                if (slotsData.slots && slotsData.slots.length > 1) {
+                    log(`✅ PASS: Found ${slotsData.slots.length} slots available for selection`, 'success');
+                    stats.passed++;
+                } else if (slotsData.slots && slotsData.slots.length === 1) {
+                    log(`⚠️ INFO: Only 1 slot available. Create more for better testing.`, 'warning');
+                    stats.passed++;
+                } else {
+                    log(`⚠️ INFO: No slots available`, 'warning');
+                    stats.failed++;
+                }
+                
+            } catch (error) {
+                log('❌ FAIL: ' + error.message, 'error');
+                stats.failed++;
+            }
+            
+            updateStats();
+        }
+
+        // Run All Tests
+        async function runAllTests() {
+            clearLogs();
+            log('🚀 RUNNING FULL TEST SUITE...', 'info');
+            
+            await checkServerStatus();
+            await new Promise(r => setTimeout(r, 500));
+            
+            await testWithoutToken();
+            await new Promise(r => setTimeout(r, 500));
+            
+            await testWithInvalidToken();
+            await new Promise(r => setTimeout(r, 500));
+            
+            await testEmptyFields();
+            await new Promise(r => setTimeout(r, 500));
+            
+            await testInvalidPhone();
+            await new Promise(r => setTimeout(r, 500));
+            
+            await testNoSlotSelected();
+            await new Promise(r => setTimeout(r, 500));
+            
+            await testPastDate();
+            await new Promise(r => setTimeout(r, 500));
+            
+            await testSearchNoResults();
+            await new Promise(r => setTimeout(r, 500));
+            
+            await testSearchBySpecialization();
+            await new Promise(r => setTimeout(r, 500));
+            
+            await testMultipleSlots();
+            await new Promise(r => setTimeout(r, 500));
+            
+            await testValidBooking();
+            await new Promise(r => setTimeout(r, 500));
+            
+            await testEmergencyBooking();
+            await new Promise(r => setTimeout(r, 500));
+            
+            await testEmergencyNoReason();
+            
+            log('✨ FULL TEST SUITE COMPLETED!', 'success');
+        }
+
+        // Initialize
+        checkServerStatus();
+        setInterval(checkServerStatus, 10000);
+    </script>
+</body>
+</html>

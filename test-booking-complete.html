@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Booking System - Test Page</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+        }
+        
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .test-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s;
+        }
+        
+        .test-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .test-card h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        .test-card p {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        
+        .test-card button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        
+        .test-card button:hover {
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .test-card button:active {
+            transform: scale(0.98);
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-weight: bold;
+            display: none;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+            border-left: 4px solid #28a745;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+            border-left: 4px solid #f5c6cb;
+        }
+        
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            display: block;
+            border-left: 4px solid #bee5eb;
+        }
+        
+        .test-result {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 0.9rem;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+        }
+        
+        .progress-bar {
+            background: #e9ecef;
+            height: 4px;
+            border-radius: 2px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 Appointment Booking System - Test Suite</h1>
+        
+        <div class="test-grid">
+            <!-- Test 1: Check Backend Connection -->
+            <div class="test-card">
+                <h2>1️⃣ Backend Connection</h2>
+                <p>Verify that the backend server is running and responsive.</p>
+                <button onclick="testBackendConnection()">Test Connection</button>
+                <div id="status1" class="status"></div>
+                <div id="result1" class="test-result"></div>
+            </div>
+            
+            <!-- Test 2: Check Database Slots -->
+            <div class="test-card">
+                <h2>2️⃣ Available Slots</h2>
+                <p>Search for available appointment slots.</p>
+                <button onclick="testAvailableSlots()">Search Slots</button>
+                <div id="status2" class="status"></div>
+                <div id="result2" class="test-result"></div>
+            </div>
+            
+            <!-- Test 3: User Registration -->
+            <div class="test-card">
+                <h2>3️⃣ User Registration</h2>
+                <p>Create a new test user account.</p>
+                <button onclick="testUserSignUp()">Sign Up</button>
+                <div id="status3" class="status"></div>
+                <div id="result3" class="test-result"></div>
+            </div>
+            
+            <!-- Test 4: User Login -->
+            <div class="test-card">
+                <h2>4️⃣ User Login</h2>
+                <p>Authenticate user and get JWT token.</p>
+                <button onclick="testUserLogin()">Login</button>
+                <div id="status4" class="status"></div>
+                <div id="result4" class="test-result"></div>
+            </div>
+            
+            <!-- Test 5: Book Appointment -->
+            <div class="test-card">
+                <h2>5️⃣ Book Appointment</h2>
+                <p>Complete the appointment booking process.</p>
+                <button onclick="testBookAppointment()">Book</button>
+                <div id="status5" class="status"></div>
+                <div id="result5" class="test-result"></div>
+            </div>
+            
+            <!-- Test 6: View Appointments -->
+            <div class="test-card">
+                <h2>6️⃣ View Appointments</h2>
+                <p>Retrieve user's booked appointments.</p>
+                <button onclick="testViewAppointments()">View</button>
+                <div id="status6" class="status"></div>
+                <div id="result6" class="test-result"></div>
+            </div>
+        </div>
+        
+        <div style="background: white; padding: 20px; border-radius: 10px; margin-top: 20px;">
+            <h2 style="color: #333; margin-bottom: 15px;">📊 Test Progress</h2>
+            <div class="progress-bar">
+                <div id="progressFill" class="progress-fill"></div>
+            </div>
+            <p id="progressText" style="color: #666; margin-top: 10px; font-weight: bold;">0/6 tests completed</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "http://localhost:5000";
+        let testResults = {
+            passed: 0,
+            failed: 0,
+            testToken: null,
+            slotId: null
+        };
+
+        function updateProgress() {
+            const total = 6;
+            const completed = testResults.passed + testResults.failed;
+            const percentage = (completed / total) * 100;
+            document.getElementById('progressFill').style.width = percentage + '%';
+            document.getElementById('progressText').textContent = `${completed}/${total} tests completed`;
+        }
+
+        function showStatus(elementId, message, isSuccess) {
+            const el = document.getElementById(elementId);
+            el.classList.remove('success', 'error', 'info');
+            el.classList.add(isSuccess ? 'success' : 'error');
+            el.textContent = (isSuccess ? '✅' : '❌') + ' ' + message;
+        }
+
+        function showResult(elementId, data) {
+            document.getElementById(elementId).textContent = JSON.stringify(data, null, 2);
+        }
+
+        async function testBackendConnection() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                showStatus('status1', 'Backend is running!', true);
+                showResult('result1', data);
+                testResults.passed++;
+                updateProgress();
+            } catch (err) {
+                showStatus('status1', 'Failed to connect to backend: ' + err.message, false);
+                testResults.failed++;
+                updateProgress();
+            }
+        }
+
+        async function testAvailableSlots() {
+            try {
+                const tomorrow = new Date();
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const dateStr = tomorrow.toISOString().split('T')[0];
+                
+                const response = await fetch(`${API_BASE}/api/organization/available-slots?date=${dateStr}`);
+                const data = await response.json();
+                
+                if (data.slots && data.slots.length > 0) {
+                    testResults.slotId = data.slots[0]._id;
+                    showStatus('status2', `Found ${data.slots.length} available slots!`, true);
+                } else {
+                    showStatus('status2', 'No slots found for tomorrow', false);
+                    testResults.failed++;
+                    updateProgress();
+                    return;
+                }
+                
+                showResult('result2', data.slots[0]);
+                testResults.passed++;
+                updateProgress();
+            } catch (err) {
+                showStatus('status2', 'Failed to fetch slots: ' + err.message, false);
+                testResults.failed++;
+                updateProgress();
+            }
+        }
+
+        async function testUserSignUp() {
+            try {
+                const timestamp = Date.now();
+                const response = await fetch(`${API_BASE}/api/auth/signup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: `testuser${timestamp}`,
+                        email: `test${timestamp}@example.com`,
+                        password: 'Test@12345'
+                    })
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    showStatus('status3', 'User registered successfully!', true);
+                    testResults.passed++;
+                } else {
+                    showStatus('status3', data.message || 'Registration failed', false);
+                    testResults.failed++;
+                }
+                
+                showResult('result3', data);
+                updateProgress();
+            } catch (err) {
+                showStatus('status3', 'Registration error: ' + err.message, false);
+                testResults.failed++;
+                updateProgress();
+            }
+        }
+
+        async function testUserLogin() {
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: 'testuser@example.com',
+                        password: 'password123'
+                    })
+                });
+                
+                const data = await response.json();
+                if (response.ok && data.token) {
+                    testResults.testToken = data.token;
+                    showStatus('status4', 'Login successful! Token obtained.', true);
+                    testResults.passed++;
+                } else {
+                    showStatus('status4', data.message || 'Login failed', false);
+                    testResults.failed++;
+                }
+                
+                showResult('result4', { token: data.token ? '(hidden for security)' : 'N/A', message: data.message });
+                updateProgress();
+            } catch (err) {
+                showStatus('status4', 'Login error: ' + err.message, false);
+                testResults.failed++;
+                updateProgress();
+            }
+        }
+
+        async function testBookAppointment() {
+            if (!testResults.testToken) {
+                showStatus('status5', 'Please login first (Test 4)', false);
+                return;
+            }
+            
+            if (!testResults.slotId) {
+                showStatus('status5', 'Please search for slots first (Test 2)', false);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/appointments`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${testResults.testToken}`
+                    },
+                    body: JSON.stringify({
+                        slotId: testResults.slotId,
+                        patientName: 'Test Patient',
+                        contactNumber: '9876543210',
+                        isEmergency: false
+                    })
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    showStatus('status5', `Appointment booked! Token: ${data.tokenNumber}`, true);
+                    testResults.passed++;
+                } else {
+                    showStatus('status5', data.message || 'Booking failed', false);
+                    testResults.failed++;
+                }
+                
+                showResult('result5', data);
+                updateProgress();
+            } catch (err) {
+                showStatus('status5', 'Booking error: ' + err.message, false);
+                testResults.failed++;
+                updateProgress();
+            }
+        }
+
+        async function testViewAppointments() {
+            if (!testResults.testToken) {
+                showStatus('status6', 'Please login first (Test 4)', false);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/appointments/my`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${testResults.testToken}`
+                    }
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    showStatus('status6', `Found ${data.length} appointment(s)`, true);
+                    testResults.passed++;
+                    showResult('result6', data.length > 0 ? data[0] : { message: 'No appointments found' });
+                } else {
+                    showStatus('status6', data.message || 'Failed to fetch appointments', false);
+                    testResults.failed++;
+                }
+                
+                updateProgress();
+            } catch (err) {
+                showStatus('status6', 'Error: ' + err.message, false);
+                testResults.failed++;
+                updateProgress();
+            }
+        }
+
+        // Auto-test on page load
+        window.addEventListener('load', () => {
+            console.log('🧪 Test suite loaded. Click buttons to run tests.');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dataset Viewer</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f6f9fc; margin: 0; }
+    header { background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 20px; }
+    header h1 { margin: 0; font-size: 1.6rem; }
+    .container { max-width: 1100px; margin: 20px auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+    .section { margin-bottom: 24px; }
+    .section h2 { margin: 0 0 10px 0; font-size: 1.2rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+    input, select, button { padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.95rem; }
+    button { background: #007BFF; color: white; border: none; cursor: pointer; }
+    button:hover { background: #0056b3; }
+    .status { padding: 10px; border-radius: 6px; margin-top: 10px; font-weight: bold; }
+    .success { background: #e6ffed; color: #1f7a3a; border: 1px solid #b6f3c4; }
+    .error { background: #fdecea; color: #b71c1c; border: 1px solid #f5c6cb; }
+    .table-wrap { overflow-x: auto; border: 1px solid #eee; border-radius: 8px; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
+    th { background: #fafafa; }
+    pre { background: #0b1020; color: #b9f; padding: 12px; border-radius: 8px; overflow-x: auto; }
+    .note { font-size: 0.9rem; color: #555; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📊 Dataset Viewer</h1>
+    <div class="note">Browse available slots and appointments from the NextIn backend.</div>
+  </header>
+
+  <div class="container">
+    <div class="section">
+      <h2>Backend</h2>
+      <div class="grid">
+        <input id="baseUrl" placeholder="API Base URL" />
+        <button id="pingBtn">Ping /health</button>
+      </div>
+      <div id="backendStatus" class="status" style="display:none;"></div>
+    </div>
+
+    <div class="section">
+      <h2>Available Slots (Public)</h2>
+      <div class="grid">
+        <input type="date" id="dateInput" />
+        <input type="text" id="locationInput" placeholder="Location (city)" />
+        <input type="text" id="specializationInput" placeholder="Specialization (optional)" />
+        <button id="loadSlotsBtn">Load Available Slots</button>
+      </div>
+      <div id="slotsStatus" class="status" style="display:none;"></div>
+      <div class="table-wrap" style="margin-top:10px;">
+        <table id="slotsTable">
+          <thead>
+            <tr>
+              <th>Hospital</th>
+              <th>Doctor</th>
+              <th>Specialization</th>
+              <th>Location</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Available</th>
+              <th>Total</th>
+              <th>Slot ID</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <h3>Raw JSON</h3>
+      <pre id="slotsJson">[]</pre>
+    </div>
+
+    <div class="section">
+      <h2>Appointments (Auth)</h2>
+      <div class="grid">
+        <input id="username" placeholder="Username" />
+        <input id="password" placeholder="Password" type="password" />
+        <button id="loginBtn">Login & Save Token</button>
+        <button id="loadMyBtn">Load My Appointments</button>
+        <button id="loadAllBtn">Load All Appointments</button>
+        <button id="createSlotBtn" style="background:#28a745;">Create Sample Slot (uses login)</button>
+        <button id="bookSampleBtn" style="background:#20c997;">Book Sample Appointment</button>
+      </div>
+      <div id="apptStatus" class="status" style="display:none;"></div>
+      <div class="table-wrap" style="margin-top:10px;">
+        <table id="apptTable">
+          <thead>
+            <tr>
+              <th>Patient</th>
+              <th>Contact</th>
+              <th>Hospital</th>
+              <th>Doctor</th>
+              <th>Specialization</th>
+              <th>Date</th>
+              <th>Time</th>
+              <th>Token</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <h3>Raw JSON</h3>
+      <pre id="apptJson">[]</pre>
+    </div>
+
+    <div class="section note">Tip: The base URL defaults to the configured value. Change it if needed (e.g., Docker or remote hosts).</div>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    const API_BASE = (typeof API_CONFIG !== 'undefined' && API_CONFIG.BASE_URL) ? API_CONFIG.BASE_URL : 'http://localhost:5000';
+    const baseUrlEl = document.getElementById('baseUrl');
+    baseUrlEl.value = API_BASE;
+
+    // Set default date = tomorrow
+    const dateEl = document.getElementById('dateInput');
+    const t = new Date(); t.setDate(t.getDate() + 1);
+    dateEl.value = t.toISOString().split('T')[0];
+
+    function showStatus(el, text, type) {
+      el.style.display = 'block';
+      el.className = `status ${type}`;
+      el.textContent = text;
+    }
+
+    function getAuthHeaders() {
+      const token = localStorage.getItem('jwtToken');
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      return headers;
+    }
+
+    // Ping health
+    document.getElementById('pingBtn').addEventListener('click', async () => {
+      const statusEl = document.getElementById('backendStatus');
+      const base = baseUrlEl.value.trim() || API_BASE;
+      try {
+        const res = await fetch(`${base}/health`);
+        if (res.ok) {
+          const data = await res.json();
+          showStatus(statusEl, `✅ Online: ${data.status} @ ${data.timestamp}`, 'success');
+        } else {
+          showStatus(statusEl, `⚠️ Health request failed: ${res.status}`, 'error');
+        }
+      } catch (e) {
+        showStatus(statusEl, `❌ Cannot reach backend: ${e.message}`, 'error');
+      }
+    });
+
+    // Load available slots (public)
+    document.getElementById('loadSlotsBtn').addEventListener('click', async () => {
+      const statusEl = document.getElementById('slotsStatus');
+      const tbody = document.querySelector('#slotsTable tbody');
+      const jsonEl = document.getElementById('slotsJson');
+      const base = baseUrlEl.value.trim() || API_BASE;
+
+      const date = document.getElementById('dateInput').value;
+      const location = document.getElementById('locationInput').value.trim();
+      const specialization = document.getElementById('specializationInput').value.trim();
+
+      const params = new URLSearchParams();
+      if (date) params.append('date', date);
+      if (location) params.append('location', location);
+      if (specialization) params.append('specialization', specialization);
+
+      try {
+        const res = await fetch(`${base}/api/organization/available-slots?${params.toString()}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Failed to fetch slots');
+
+        const slots = data.slots || [];
+        showStatus(statusEl, `✅ ${slots.length} slot(s) found`, 'success');
+
+        tbody.innerHTML = '';
+        slots.forEach(s => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${s.hospitalName || 'N/A'}</td>
+            <td>${s.doctorName || 'N/A'}</td>
+            <td>${s.specialization || 'N/A'}</td>
+            <td>${s.location || 'N/A'}</td>
+            <td>${s.date || 'N/A'}</td>
+            <td>${s.timeSlot || 'N/A'}</td>
+            <td>${typeof s.availableSlots === 'number' ? s.availableSlots : 'N/A'}</td>
+            <td>${typeof s.totalSlots === 'number' ? s.totalSlots : 'N/A'}</td>
+            <td>${s._id || ''}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+        jsonEl.textContent = JSON.stringify(slots, null, 2);
+      } catch (e) {
+        showStatus(statusEl, `❌ Error: ${e.message}`, 'error');
+        tbody.innerHTML = '';
+        jsonEl.textContent = '[]';
+      }
+    });
+
+    // Login
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+      const statusEl = document.getElementById('apptStatus');
+      const base = baseUrlEl.value.trim() || API_BASE;
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+
+      if (!username || !password) {
+        showStatus(statusEl, '⚠️ Enter username and password', 'error');
+        return;
+      }
+      try {
+        const res = await fetch(`${base}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (!res.ok || !data.token) throw new Error(data.message || 'Login failed');
+        localStorage.setItem('jwtToken', data.token);
+        showStatus(statusEl, `✅ Logged in. Token saved.`, 'success');
+      } catch (e) {
+        showStatus(statusEl, `❌ Login error: ${e.message}`, 'error');
+      }
+    });
+
+    async function loadAppointments(path) {
+      const statusEl = document.getElementById('apptStatus');
+      const tbody = document.querySelector('#apptTable tbody');
+      const jsonEl = document.getElementById('apptJson');
+      const base = baseUrlEl.value.trim() || API_BASE;
+
+      try {
+        const res = await fetch(`${base}${path}`, { headers: getAuthHeaders() });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Failed to fetch appointments');
+
+        const appts = Array.isArray(data) ? data : (data.appointments || []);
+        showStatus(statusEl, `✅ ${appts.length} appointment(s) found`, 'success');
+
+        tbody.innerHTML = '';
+        appts.forEach(a => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${a.patientName || 'N/A'}</td>
+            <td>${a.contactNumber || 'N/A'}</td>
+            <td>${a.organizationName || 'N/A'}</td>
+            <td>${a.doctorName || 'N/A'}</td>
+            <td>${a.specialization || 'N/A'}</td>
+            <td>${a.date || 'N/A'}</td>
+            <td>${a.timeSlot || 'N/A'}</td>
+            <td>${a.tokenNumber || 'N/A'}</td>
+            <td>${a.status || 'N/A'}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+        jsonEl.textContent = JSON.stringify(appts, null, 2);
+      } catch (e) {
+        showStatus(statusEl, `❌ Error: ${e.message}`, 'error');
+        tbody.innerHTML = '';
+        jsonEl.textContent = '[]';
+      }
+    }
+
+    document.getElementById('loadMyBtn').addEventListener('click', () => loadAppointments('/api/appointments/my'));
+    document.getElementById('loadAllBtn').addEventListener('click', () => loadAppointments('/api/appointments/all'));
+
+    // Create a sample slot using /api/organization/save-details (requires auth token)
+    document.getElementById('createSlotBtn').addEventListener('click', async () => {
+      const statusEl = document.getElementById('apptStatus');
+      const base = baseUrlEl.value.trim() || API_BASE;
+      const token = localStorage.getItem('jwtToken');
+      if (!token) {
+        showStatus(statusEl, '❌ Login first to create a slot', 'error');
+        return;
+      }
+
+      const date = document.getElementById('dateInput').value || new Date().toISOString().split('T')[0];
+      const location = (document.getElementById('locationInput').value || 'pune').trim();
+      const specialization = (document.getElementById('specializationInput').value || 'neuro').trim();
+
+      const payload = {
+        organizationName: `${location.toUpperCase()} ${specialization.toUpperCase()} Center`,
+        address: location,
+        doctors: [
+          {
+            name: 'Dr. Sample',
+            specialization,
+            availableDate: date,
+            timeFrom: '10:00',
+            timeTo: '11:00',
+            noOfTokens: 10
+          }
+        ],
+        isEmergencySlot: false
+      };
+
+      try {
+        const res = await fetch(`${base}/api/organization/save-details`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Failed to create slot');
+        showStatus(statusEl, `✅ Slot created for ${date} at ${location}. Click "Load Available Slots" to view.`, 'success');
+      } catch (e) {
+        showStatus(statusEl, `❌ Slot creation error: ${e.message}`, 'error');
+      }
+    });
+
+    // Book a sample appointment on the first available slot for current filters
+    document.getElementById('bookSampleBtn').addEventListener('click', async () => {
+      const statusEl = document.getElementById('apptStatus');
+      const base = baseUrlEl.value.trim() || API_BASE;
+      const token = localStorage.getItem('jwtToken');
+      if (!token) {
+        showStatus(statusEl, '❌ Login first to book an appointment', 'error');
+        return;
+      }
+
+      const date = document.getElementById('dateInput').value;
+      const location = document.getElementById('locationInput').value.trim();
+      const specialization = document.getElementById('specializationInput').value.trim();
+
+      const params = new URLSearchParams();
+      if (date) params.append('date', date);
+      if (location) params.append('location', location);
+      if (specialization) params.append('specialization', specialization);
+
+      try {
+        const slotsRes = await fetch(`${base}/api/organization/available-slots?${params.toString()}`);
+        const slotsData = await slotsRes.json();
+        if (!slotsRes.ok) throw new Error(slotsData.message || 'Failed to fetch slots');
+        const slots = slotsData.slots || [];
+        if (slots.length === 0) {
+          showStatus(statusEl, '⚠️ No slots found for current filters. Create a slot first.', 'error');
+          return;
+        }
+
+        const slot = slots[0];
+        const payload = {
+          slotId: slot._id,
+          patientName: `Test Patient ${Date.now().toString().slice(-5)}`,
+          contactNumber: '9998887777',
+          isEmergency: false,
+          emergencyReason: ''
+        };
+
+        const bookRes = await fetch(`${base}/api/appointments`, {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify(payload)
+        });
+        const bookData = await bookRes.json();
+        if (!bookRes.ok) throw new Error(bookData.message || 'Booking failed');
+
+        showStatus(statusEl, `✅ Booked! Token ${bookData.tokenNumber}. Refreshing "My Appointments"...`, 'success');
+        // Refresh user's appointments
+        await loadAppointments('/api/appointments/my');
+      } catch (e) {
+        showStatus(statusEl, `❌ Booking error: ${e.message}`, 'error');
+      }
+    });
+  </script>
+</body>
+</html>

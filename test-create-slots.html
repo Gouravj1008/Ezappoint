@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Test Slots - Admin Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(150deg, #8fd3f4, #84fab0);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            color: #1976D2;
+        }
+        .buttons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        button {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            color: white;
+        }
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #51cf66, #37b24d);
+            color: white;
+        }
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(81, 207, 102, 0.4);
+        }
+        .btn-warning {
+            background: linear-gradient(135deg, #ffd93d, #fb9500);
+            color: white;
+        }
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 217, 61, 0.4);
+        }
+        .status-box {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            margin-top: 20px;
+        }
+        .status-box h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .log-output {
+            background: #222;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .log-line {
+            margin: 5px 0;
+        }
+        .log-success {
+            color: #0f0;
+        }
+        .log-error {
+            color: #f00;
+        }
+        .log-info {
+            color: #0ff;
+        }
+        .log-warning {
+            color: #ff0;
+        }
+        .quick-create {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .slot-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        .slot-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        .slot-card h4 {
+            margin-bottom: 10px;
+        }
+        .slot-card p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 Create Test Slots for Booking</h1>
+        <div class="info-box">
+            ℹ️ This page helps you create sample hospital slots for testing the appointment booking system.
+            Select a preset or create custom slots below.
+        </div>
+
+        <h2 style="margin-top: 20px; margin-bottom: 15px;">Quick Create Presets</h2>
+        <div class="buttons-grid">
+            <button class="btn-success" onclick="createCardiology()">
+                ❤️ Create Cardiology Slots
+            </button>
+            <button class="btn-success" onclick="createNeurology()">
+                🧠 Create Neurology Slots
+            </button>
+            <button class="btn-success" onclick="createDentistry()">
+                🦷 Create Dentistry Slots
+            </button>
+            <button class="btn-success" onclick="createEmergency()">
+                🚨 Create Emergency Slots
+            </button>
+        </div>
+
+        <h2 style="margin-top: 30px; margin-bottom: 15px;">Quick Actions</h2>
+        <div class="buttons-grid">
+            <button class="btn-primary" onclick="createAllPresets()">
+                ✅ Create ALL Presets
+            </button>
+            <button class="btn-warning" onclick="checkSlots()">
+                🔍 Check Existing Slots
+            </button>
+            <button class="btn-danger" onclick="deleteAllSlots()">
+                🗑️ Delete All Slots
+            </button>
+            <button class="btn-primary" onclick="goToBooking()">
+                📅 Go to Booking Page
+            </button>
+        </div>
+
+        <div class="status-box">
+            <h3>📋 Status & Logs</h3>
+            <div id="status" style="color: #666;">Ready to create slots...</div>
+            <div id="logOutput" class="log-output"></div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        const API_BASE = API_URL || "http://localhost:5000";
+        const logOutput = document.getElementById("logOutput");
+        const statusDiv = document.getElementById("status");
+
+        function log(message, type = "info") {
+            const timestamp = new Date().toLocaleTimeString();
+            let color = "log-info";
+            let prefix = "ℹ️";
+
+            if (type === "success") {
+                color = "log-success";
+                prefix = "✅";
+            } else if (type === "error") {
+                color = "log-error";
+                prefix = "❌";
+            } else if (type === "warning") {
+                color = "log-warning";
+                prefix = "⚠️";
+            }
+
+            const line = document.createElement("div");
+            line.className = `log-line ${color}`;
+            line.textContent = `[${timestamp}] ${prefix} ${message}`;
+            logOutput.appendChild(line);
+            logOutput.scrollTop = logOutput.scrollHeight;
+        }
+
+        function getToken() {
+            return localStorage.getItem("jwtToken");
+        }
+
+        async function createSlots(organizationName, location, doctors, isEmergency = false) {
+            try {
+                const token = getToken();
+                if (!token) {
+                    log("❌ No authentication token found. Please login first!", "error");
+                    alert("Please login first to create slots!");
+                    return;
+                }
+
+                const slotType = isEmergency ? "🚨 Emergency" : "Regular";
+                log(`Creating ${slotType} slots for ${organizationName}...`, "info");
+
+                const requestBody = {
+                    organizationName,
+                    address: location,
+                    doctors,
+                    isEmergencySlot: isEmergency
+                };
+
+                log(`Request: POST /api/organization/save-details`, "info");
+                log(`Data: ${JSON.stringify(requestBody, null, 2)}`, "info");
+
+                const response = await fetch(`${API_BASE}/api/organization/save-details`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+
+                const result = await response.json();
+                log(`Response Status: ${response.status}`, "info");
+
+                if (!response.ok) {
+                    log(`Failed to create slots: ${result.message}`, "error");
+                    return;
+                }
+
+                log(`✅ Successfully created ${result.slots.length} ${slotType} slot(s)`, "success");
+                return result.slots;
+            } catch (error) {
+                log(`Error: ${error.message}`, "error");
+                console.error("Full error:", error);
+            }
+        }
+
+        // Preset slot creators
+        async function createCardiology() {
+            log("🔄 Creating Cardiology Slots...", "warning");
+            const tomorrow = getNextDate(1);
+            const dayAfter = getNextDate(2);
+
+            await createSlots(
+                "Apollo Hospital",
+                "Mumbai",
+                [
+                    { name: "Dr. Rajesh Kumar", specialization: "Cardiology", availableDate: tomorrow, timeFrom: "09:00 AM", timeTo: "12:00 PM", noOfTokens: 15 },
+                    { name: "Dr. Priya Singh", specialization: "Cardiology", availableDate: dayAfter, timeFrom: "02:00 PM", timeTo: "05:00 PM", noOfTokens: 12 }
+                ],
+                false
+            );
+        }
+
+        async function createNeurology() {
+            log("🔄 Creating Neurology Slots...", "warning");
+            const tomorrow = getNextDate(1);
+            const dayAfter = getNextDate(2);
+
+            await createSlots(
+                "Max Healthcare",
+                "New Delhi",
+                [
+                    { name: "Dr. Amit Patel", specialization: "Neurology", availableDate: tomorrow, timeFrom: "10:00 AM", timeTo: "01:00 PM", noOfTokens: 10 },
+                    { name: "Dr. Neha Gupta", specialization: "Neurology", availableDate: dayAfter, timeFrom: "03:00 PM", timeTo: "06:00 PM", noOfTokens: 10 }
+                ],
+                false
+            );
+        }
+
+        async function createDentistry() {
+            log("🔄 Creating Dentistry Slots...", "warning");
+            const tomorrow = getNextDate(1);
+            const dayAfter = getNextDate(2);
+
+            await createSlots(
+                "Dental Care Clinic",
+                "Bangalore",
+                [
+                    { name: "Dr. Vishal Dey", specialization: "Dentistry", availableDate: tomorrow, timeFrom: "08:00 AM", timeTo: "11:00 AM", noOfTokens: 20 },
+                    { name: "Dr. Anjali Sharma", specialization: "Dentistry", availableDate: dayAfter, timeFrom: "01:00 PM", timeTo: "04:00 PM", noOfTokens: 18 }
+                ],
+                false
+            );
+        }
+
+        async function createEmergency() {
+            log("🔄 Creating Emergency Slots...", "warning");
+            const today = getNextDate(0);
+
+            await createSlots(
+                "Emergency Center",
+                "Mumbai",
+                [
+                    { name: "Dr. Emergency One", specialization: "General Medicine", availableDate: today, timeFrom: "12:00 AM", timeTo: "06:00 AM", noOfTokens: 5 },
+                    { name: "Dr. Emergency Two", specialization: "Trauma Surgery", availableDate: today, timeFrom: "06:00 AM", timeTo: "12:00 PM", noOfTokens: 5 }
+                ],
+                true
+            );
+        }
+
+        async function createAllPresets() {
+            log("🚀 Creating ALL preset slots...", "warning");
+            logOutput.innerHTML = "";
+            
+            await createCardiology();
+            await new Promise(r => setTimeout(r, 1000));
+            
+            await createNeurology();
+            await new Promise(r => setTimeout(r, 1000));
+            
+            await createDentistry();
+            await new Promise(r => setTimeout(r, 1000));
+            
+            await createEmergency();
+            
+            log("🎉 All presets created! You can now test booking.", "success");
+        }
+
+        async function checkSlots() {
+            log("🔍 Fetching all slots from database...", "info");
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/organization/all-slots`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${getToken()}`
+                    }
+                });
+
+                const result = await response.json();
+                const slots = result.slots || [];
+
+                log(`Total slots in database: ${slots.length}`, "success");
+                
+                if (slots.length > 0) {
+                    slots.forEach((slot, i) => {
+                        log(`Slot ${i + 1}: ${slot.doctorName} (${slot.specialization}) @ ${slot.hospitalName}, ${slot.location} on ${slot.date}`, "info");
+                        log(`  → Time: ${slot.timeSlot} | Available: ${slot.availableSlots}/${slot.totalSlots} | Active: ${slot.isActive}`, "info");
+                    });
+                } else {
+                    log("No slots found in database. Create some using the buttons above!", "warning");
+                }
+            } catch (error) {
+                log(`Error fetching slots: ${error.message}`, "error");
+            }
+        }
+
+        async function deleteAllSlots() {
+            const confirmed = confirm("⚠️ This will delete ALL slots from the database. Are you sure?");
+            if (!confirmed) return;
+
+            log("🗑️ Deleting all slots...", "warning");
+            
+            try {
+                // For now, we'll need to create a delete endpoint or use a workaround
+                log("Note: Slot deletion functionality not yet implemented in API.", "warning");
+                log("You can manually delete slots or wait for the API to be updated.", "info");
+            } catch (error) {
+                log(`Error: ${error.message}`, "error");
+            }
+        }
+
+        function goToBooking() {
+            window.location.href = "Book Appointment.html";
+        }
+
+        function getNextDate(daysFromNow) {
+            const date = new Date();
+            date.setDate(date.getDate() + daysFromNow);
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Auto-check slots on page load
+        window.addEventListener("load", () => {
+            log("Page loaded. Ready to create test slots!", "success");
+            log("Step 1: Click a preset button to create sample slots", "info");
+            log("Step 2: The booking page will use these slots", "info");
+        });
+    </script>
+</body>
+</html>

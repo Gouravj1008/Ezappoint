@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Booking</title>
+    <style>
+        .navbar {
+            position: absolute;
+            top: 20px;
+            left: 70px;
+            font-size: 24px;
+            font-weight: bold;
+            color: black;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+        .close-btn:hover {
+            transform: rotate(90deg);
+        }
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 24px;
+            color: black;
+            text-decoration: none;
+            transition: transform 0.3s;
+            padding: 5px 10px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(150deg, #8fd3f4, #84fab0);
+            animation: gradientBackground 10s ease infinite;
+            color: #333;
+        }
+        @keyframes gradientBackground {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .header {
+            text-align: center;
+            padding: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: fadeInDown 1s ease;
+            color: #333;
+        }
+        .header h1 {
+            margin: 0;
+            color: #333;
+        }
+        .header a {
+            text-decoration: none;
+            color: #007BFF;
+            font-weight: bold;
+        }
+        .container {
+            width: 50%;
+            margin: 40px auto;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 45px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            animation: fadeInUp 1s ease;
+        }
+        label {
+            font-size: 1rem;
+            color: #333;
+        }
+        input, button, select {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 1rem;
+            transition: box-shadow 0.3s, transform 0.3s;
+        }
+        input:focus, select:focus {
+            box-shadow: 0 0 10px #8fd3f4;
+            outline: none;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        button:active {
+            transform: scale(0.95);
+        }
+        .message {
+            margin-top: 10px;
+            font-weight: bold;
+            color: red;
+        }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .emergency-section {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            color: white;
+            display: none;
+        }
+        .emergency-section.show {
+            display: block;
+        }
+        .emergency-toggle {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px 0;
+            width: 100%;
+            font-size: 1rem;
+        }
+        .emergency-toggle:hover {
+            background: linear-gradient(135deg, #ff5252, #e63946);
+            transform: scale(1.02);
+        }
+        .emergency-toggle.active {
+            background: linear-gradient(135deg, #ff4444, #cc0000);
+        }
+        .emergency-info {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+            border-left: 4px solid white;
+        }
+        .emergency-info p {
+            margin: 5px 0;
+            font-size: 0.95rem;
+        }
+        .emergency-reason {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .emergency-reason::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .priority-badge {
+            display: inline-block;
+            background: #ffd700;
+            color: #333;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="close-btn">&times;</a>
+    <div class="navbar">EzAppoint</div>
+
+    <div class="header">
+        <h1>Appointment Booking</h1>
+        <a href="user deatils.html">User Details</a>
+    </div>
+
+    <div class="container">
+        <h2>Book your appointment</h2>
+
+        <label for="name">Patient Name:</label>
+        <input type="text" id="name" placeholder="Enter patient name">
+
+        <label for="contact">Contact Number:</label>
+        <input type="text" id="contact" placeholder="Enter your contact number" maxlength="10">
+
+        <hr style="margin: 20px 0;">
+        <h3 style="margin-bottom: 15px;">Search Available Slots</h3>
+
+        <label for="date">Select Date:</label>
+        <input type="date" id="date" required>
+
+        <label for="location">Location (city/town):</label>
+        <input type="text" id="location" placeholder="Enter location">
+
+        <label for="specialization">Specialization:</label>
+        <input type="text" id="specialization" placeholder="e.g. Cardiology">
+
+        <button id="emergencyBtn" type="button" class="emergency-toggle">🚨 Emergency Booking</button>
+
+        <div id="emergencySection" class="emergency-section">
+            <h3 style="margin-top: 0;">⚠️ Emergency Appointment</h3>
+            <div class="emergency-info">
+                <p>🔴 <strong>Priority Access:</strong> Emergency appointments are processed immediately with priority token allocation.</p>
+                <p>⏱️ <strong>Fast Track:</strong> Get seen by the doctor faster than regular appointments.</p>
+                <p>✅ <strong>Guaranteed:</strong> An available time slot will be guaranteed for emergency cases.</p>
+            </div>
+            <label for="emergencyReason" style="color: white; font-weight: bold;">Reason for Emergency:</label>
+            <textarea id="emergencyReason" class="emergency-reason" placeholder="Please describe your medical emergency (e.g., severe pain, acute symptoms, urgent situation)" rows="3"></textarea>
+            <div class="priority-badge">🌟 HIGH PRIORITY</div>
+        </div>
+
+        <button id="searchBtn" type="button" style="background-color: #28a745;">Search Available Slots</button>
+
+        <hr style="margin: 20px 0;">
+        <div id="slotSection" style="display:none;">
+            <h3>Available Slots</h3>
+            <label for="slotDropdown">Select a Slot:</label>
+            <select id="slotDropdown" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 1rem; margin: 10px 0;">
+                <option value="">-- Select a slot --</option>
+            </select>
+            <div id="slotDetails" style="margin-top: 15px; padding: 15px; background-color: #f0f8ff; border-radius: 5px; display: none;">
+                <p><strong>Hospital:</strong> <span id="detailHospital"></span></p>
+                <p><strong>Doctor:</strong> <span id="detailDoctor"></span></p>
+                <p><strong>Specialization:</strong> <span id="detailSpecialization"></span></p>
+                <p><strong>Time Slot:</strong> <span id="detailTime"></span></p>
+                <p><strong>Available Slots:</strong> <span id="detailAvailable" style="color: green; font-weight: bold;"></span></p>
+            </div>
+        </div>
+
+        <p class="message" id="message"></p>
+
+        <button id="submitBtn" type="button" style="display:none;">Book Appointment</button>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        const API_BASE = API_URL || "http://localhost:5000";
+        let availableSlots = [];
+        let selectedSlot = null;
+        let isEmergencyMode = false;
+
+        // Set min date = tomorrow
+        document.addEventListener("DOMContentLoaded", function () {
+            const dateInput = document.getElementById("date");
+            const today = new Date();
+            today.setDate(today.getDate() + 1);
+            const minDate = today.toISOString().split("T")[0];
+            dateInput.setAttribute("min", minDate);
+
+            // Emergency button toggle
+            document.getElementById("emergencyBtn").addEventListener("click", toggleEmergencyMode);
+        });
+
+        // Only letters in Name
+        document.getElementById("name").addEventListener("input", function () {
+            this.value = this.value.replace(/[^a-zA-Z\s]/g, "");
+        });
+
+        // Only numbers in Contact
+        document.getElementById("contact").addEventListener("input", function () {
+            this.value = this.value.replace(/[^0-9]/g, "");
+        });
+
+        // Toggle Emergency Mode
+        function toggleEmergencyMode() {
+            isEmergencyMode = !isEmergencyMode;
+            const emergencySection = document.getElementById("emergencySection");
+            const emergencyBtn = document.getElementById("emergencyBtn");
+            
+            if (isEmergencyMode) {
+                emergencySection.classList.add("show");
+                emergencyBtn.classList.add("active");
+                emergencyBtn.textContent = "✅ Emergency Mode Active";
+                // For emergency, we can auto-fill today's date if needed
+                const today = new Date().toISOString().split("T")[0];
+                // Don't force it, just highlight
+            } else {
+                emergencySection.classList.remove("show");
+                emergencyBtn.classList.remove("active");
+                emergencyBtn.textContent = "🚨 Emergency Booking";
+                document.getElementById("emergencyReason").value = "";
+            }
+        }
+
+        // Get JWT token
+        function getToken() {
+            return localStorage.getItem("jwtToken");
+        }
+
+        // Headers with Authorization
+        function getHeaders() {
+            const token = getToken();
+            if (!token) {
+                alert("❌ No login token found. Please log in again.");
+                window.location.href = "User login.html";
+                return {};
+            }
+            return {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+            };
+        }
+
+        // Search for available slots
+        async function searchSlots() {
+            const date = document.getElementById("date").value;
+            const location = document.getElementById("location").value.trim();
+            const specialization = document.getElementById("specialization").value.trim();
+            const msgEl = document.getElementById("message");
+
+            if (!date || !location) {
+                msgEl.textContent = "❌ Please select date and location to search slots.";
+                msgEl.style.color = "red";
+                return;
+            }
+
+            msgEl.textContent = "🔍 Searching for available slots...";
+            msgEl.style.color = "blue";
+
+            console.log("🔍 Search Parameters:", { date, location, specialization });
+
+            try {
+                const params = new URLSearchParams({ date, location });
+                if (specialization) {
+                    params.append("specialization", specialization);
+                }
+
+                const url = `${API_BASE}/api/organization/available-slots?${params}`;
+                console.log("📡 API Request URL:", url);
+
+                const response = await fetch(url, {
+                    method: "GET",
+                    headers: getHeaders()
+                });
+
+                console.log("📊 API Response Status:", response.status, response.statusText);
+                
+                const result = await response.json();
+                console.log("📦 API Response Data:", result);
+
+                if (!response.ok) {
+                    msgEl.textContent = `❌ ${result.message || "Failed to fetch slots."}`;
+                    msgEl.style.color = "red";
+                    console.error("❌ API Error:", result);
+                    return;
+                }
+
+                availableSlots = result.slots || [];
+                
+                console.log(`✅ Retrieved ${availableSlots.length} slots`);
+
+                if (availableSlots.length === 0) {
+                    msgEl.innerHTML = `
+                        <div style="padding: 15px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 5px; color: #856404;">
+                            <strong>⚠️ No available slots found</strong><br>
+                            Searched for: <strong>${date}</strong> in <strong>${location}</strong>
+                            ${specialization ? `for <strong>${specialization}</strong>` : ''}
+                            <br><br>
+                            <small>Try different dates, locations, or specializations.</small>
+                        </div>
+                    `;
+                    msgEl.style.color = "orange";
+                    document.getElementById("slotSection").style.display = "none";
+                    document.getElementById("submitBtn").style.display = "none";
+                    return;
+                }
+
+                // Populate dropdown
+                populateSlotDropdown();
+                document.getElementById("slotSection").style.display = "block";
+                msgEl.innerHTML = `<strong style="color: green;">✅ Found ${availableSlots.length} available slot(s)</strong>`;
+                msgEl.style.color = "green";
+            } catch (error) {
+                console.error("❌ Error fetching slots:", error);
+                msgEl.innerHTML = `
+                    <div style="padding: 15px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; color: #721c24;">
+                        <strong>❌ Error searching for slots</strong><br>
+                        ${error.message}<br>
+                        <small>Make sure the backend server is running on ${API_BASE}</small>
+                    </div>
+                `;
+                msgEl.style.color = "red";
+            }
+        }
+
+        // Populate the slot dropdown
+        function populateSlotDropdown() {
+            const dropdown = document.getElementById("slotDropdown");
+            dropdown.innerHTML = '<option value="">-- Select a slot --</option>';
+
+            availableSlots.forEach((slot, index) => {
+                const option = document.createElement("option");
+                option.value = index;
+                // Store complete slot object in data attribute for easy access
+                option.dataset.slotId = slot._id || "";
+                option.textContent = `${slot.doctorName} - ${slot.timeSlot} (${slot.availableSlots} slots available)`;
+                dropdown.appendChild(option);
+                console.log(`✅ Added slot option ${index}:`, {
+                    id: slot._id,
+                    doctor: slot.doctorName,
+                    time: slot.timeSlot,
+                    available: slot.availableSlots
+                });
+            });
+        }
+
+        // Handle slot selection
+        document.getElementById("slotDropdown").addEventListener("change", function () {
+            const selectedIndex = this.value;
+            const msgEl = document.getElementById("message");
+            
+            console.log("🎯 SLOT SELECTION EVENT:");
+            console.log("═══════════════════════════════════════════");
+            console.log("  Selected Index:", selectedIndex);
+            console.log("  Total Available Slots in Array:", availableSlots.length);
+            
+            if (selectedIndex === "" || selectedIndex === undefined) {
+                document.getElementById("slotDetails").style.display = "none";
+                document.getElementById("submitBtn").style.display = "none";
+                selectedSlot = null;
+                console.log("  ⚠️ No slot selected - cleared selection");
+                return;
+            }
+
+            // Get slot from array
+            selectedSlot = availableSlots[parseInt(selectedIndex)];
+            
+            console.log("  ✅ Raw Slot Object Retrieved:", JSON.stringify(selectedSlot, null, 2));
+            console.log("  Slot ID Type:", typeof selectedSlot?._id);
+            console.log("  Slot ID Value:", selectedSlot?._id);
+            console.log("  All Slot Keys:", Object.keys(selectedSlot || {}));
+            
+            if (!selectedSlot) {
+                msgEl.innerHTML = '<div style="color: red; background: #ffebee; padding: 10px; border-radius: 5px;">❌ Error: Slot not found. Please try again.</div>';
+                document.getElementById("slotDetails").style.display = "none";
+                document.getElementById("submitBtn").style.display = "none";
+                return;
+            }
+
+            if (!selectedSlot._id) {
+                console.error("❌ CRITICAL ERROR: Selected slot has no _id!");
+                msgEl.innerHTML = '<div style="color: red; background: #ffebee; padding: 10px; border-radius: 5px;">❌ Slot ID missing. Please refresh and try again.</div>';
+                document.getElementById("slotDetails").style.display = "none";
+                document.getElementById("submitBtn").style.display = "none";
+                return;
+            }
+            
+            console.log("  ✅ Valid Slot Confirmed with ID:", selectedSlot._id);
+            
+            // Show slot details
+            document.getElementById("detailHospital").textContent = selectedSlot.hospitalName || "N/A";
+            document.getElementById("detailDoctor").textContent = selectedSlot.doctorName || "N/A";
+            document.getElementById("detailSpecialization").textContent = selectedSlot.specialization || "N/A";
+            document.getElementById("detailTime").textContent = selectedSlot.timeSlot || "N/A";
+            document.getElementById("detailAvailable").textContent = selectedSlot.availableSlots || "0";
+            
+            document.getElementById("slotDetails").style.display = "block";
+            document.getElementById("submitBtn").style.display = "block";
+            
+            console.log("  ✅ Slot details displayed in UI");
+        });
+
+        async function bookAppointment() {
+            const msgEl = document.getElementById("message");
+            const tokenCheck = getToken();
+            if (!tokenCheck) {
+                msgEl.innerHTML = '<div style="color: red; background: #ffebee; padding: 15px; border-radius: 5px; border-left: 4px solid red;"><strong>❌ Not logged in</strong><br>Please log in to book an appointment.</div>';
+                msgEl.style.color = "red";
+                window.location.href = "User login.html";
+                return;
+            }
+
+            const patientName = document.getElementById("name").value.trim();
+            const contactNumber = document.getElementById("contact").value.trim();
+
+            console.log("� BOOKING ATTEMPT:");
+            console.log("═══════════════════════════════════════════");
+            console.log("📋 FORM DATA CAPTURED:");
+            console.log("  patientName: '" + patientName + "' (length: " + patientName.length + ")");
+            console.log("  contactNumber: '" + contactNumber + "' (length: " + contactNumber.length + ")");
+            console.log("  selectedSlot:", selectedSlot);
+            if (selectedSlot) {
+                console.log("  slotId: '" + selectedSlot._id + "'");
+            }
+            console.log("  isEmergencyMode:", isEmergencyMode);
+
+            // Validation
+            if (!patientName || patientName === "") {
+                const msg = "❌ Patient name is required";
+                console.error(msg);
+                msgEl.innerHTML = '<div style="color: red; background: #ffebee; padding: 15px; border-radius: 5px; border-left: 4px solid red;"><strong>' + msg + '</strong><br>Please enter a valid name with letters only</div>';
+                msgEl.style.color = "red";
+                return;
+            }
+
+            if (!contactNumber || contactNumber === "") {
+                const msg = "❌ Contact number is required and cannot be empty";
+                console.error("VALIDATION FAILED - Contact:", msg);
+                msgEl.innerHTML = '<div style="color: red; background: #ffebee; padding: 15px; border-radius: 5px; border-left: 4px solid red;"><strong>' + msg + '</strong><br>Please enter your 10-digit phone number</div>';
+                msgEl.style.color = "red";
+                return;
+            }
+
+            if (contactNumber.length !== 10) {
+                const msg = "❌ Invalid contact number (length: " + contactNumber.length + ", expected: 10)";
+                console.error("VALIDATION FAILED - Contact Length:", msg);
+                msgEl.innerHTML = '<div style="color: red; background: #ffebee; padding: 15px; border-radius: 5px; border-left: 4px solid red;"><strong>Invalid contact number</strong><br>Contact number must be exactly 10 digits (you entered ' + contactNumber.length + ')</div>';
+                msgEl.style.color = "red";
+                return;
+            }
+
+            if (!selectedSlot) {
+                const msg = "❌ No slot selected";
+                console.error("VALIDATION FAILED - Slot:", msg);
+                msgEl.innerHTML = '<div style="color: red; background: #ffebee; padding: 15px; border-radius: 5px; border-left: 4px solid red;"><strong>' + msg + '</strong><br>Please search for available slots and select one from the dropdown</div>';
+                msgEl.style.color = "red";
+                return;
+            }
+
+            if (!selectedSlot._id) {
+                const msg = "❌ Slot ID is NULL/UNDEFINED - This is a critical error!";
+                console.error("VALIDATION FAILED - CRITICAL:", msg);
+                console.error("  selectedSlot._id actual value:", selectedSlot._id);
+                console.error("  selectedSlot object:", JSON.stringify(selectedSlot, null, 2));
+                msgEl.innerHTML = '<div style="color: red; background: #ffebee; padding: 15px; border-radius: 5px; border-left: 4px solid red;"><strong>Slot ID missing</strong><br>The selected slot does not have a valid ID. Please search again.</div>';
+                msgEl.style.color = "red";
+                return;
+            }
+
+            // Check emergency requirements
+            if (isEmergencyMode) {
+                const emergencyReason = document.getElementById("emergencyReason").value.trim();
+                if (!emergencyReason || emergencyReason === "") {
+                    const msg = "❌ Emergency reason is required";
+                    console.error("VALIDATION FAILED - Emergency Reason:", msg);
+                    msgEl.innerHTML = '<div style="color: red; background: #ffebee; padding: 15px; border-radius: 5px; border-left: 4px solid red;"><strong>' + msg + '</strong><br>Please provide a reason for your emergency booking</div>';
+                    msgEl.style.color = "red";
+                    return;
+                }
+            }
+
+            const data = {
+                slotId: selectedSlot._id,
+                patientName: patientName,
+                contactNumber: contactNumber,
+                isEmergency: isEmergencyMode,
+                emergencyReason: isEmergencyMode ? document.getElementById("emergencyReason").value.trim() : ""
+            };
+
+            console.log("✅ ALL VALIDATIONS PASSED - SENDING DATA:");
+            console.log("  slotId: " + data.slotId);
+            console.log("  patientName: " + data.patientName);
+            console.log("  contactNumber: " + data.contactNumber);
+            console.log("  Full payload:", JSON.stringify(data, null, 2));
+
+            msgEl.innerHTML = '<div style="color: #0066cc; background: #e3f2fd; padding: 15px; border-radius: 5px; border-left: 4px solid #0066cc;">⏳ Processing your booking... Please wait</div>';
+            msgEl.style.color = "blue";
+
+            try {
+                console.log("🌐 SENDING REQUEST TO:", API_BASE + "/api/appointments");
+                console.log("📝 Headers:", JSON.stringify(getHeaders(), null, 2));
+                
+                const response = await fetch(`${API_BASE}/api/appointments`, {
+                    method: "POST",
+                    headers: getHeaders(),
+                    body: JSON.stringify(data)
+                });
+
+                console.log("📊 RESPONSE RECEIVED:");
+                console.log("  HTTP Status Code:", response.status);
+                console.log("  Status Text:", response.statusText);
+                
+                const result = await response.json();
+                console.log("  Response Body:", JSON.stringify(result, null, 2));
+
+                if (!response.ok) {
+                    const errorMsg = result.message || result.error || "Failed to book appointment";
+                    console.error("❌ BOOKING API FAILED:");
+                    console.error("  HTTP Status:", response.status);
+                    console.error("  Error Message:", errorMsg);
+                    console.error("  Full Response:", JSON.stringify(result, null, 2));
+                    console.error("  Sent Data:", JSON.stringify(data, null, 2));
+                    
+                    msgEl.innerHTML = `
+                        <div style="color: red; background: #ffebee; padding: 15px; border-radius: 5px; border-left: 4px solid red;">
+                            <strong>❌ Booking Failed (HTTP ${response.status})</strong><br>
+                            ${errorMsg}<br>
+                            <small style="color: #c62828;">Check browser console for full error details</small>
+                        </div>
+                    `;
+                    msgEl.style.color = "red";
+                    alert("❌ Booking Failed!\n\nError: " + errorMsg + "\n\nCheck console (F12) for details.");
+                    return;
+                }
+
+                console.log("✅ BOOKING SUCCESSFUL!");
+                console.log("  Full response:", JSON.stringify(result, null, 2));
+                
+                // Get token number from response - check all possible locations
+                let tokenNumber = result.tokenNumber || 
+                                   result.appointment?.tokenNumber || 
+                                   (result.appointment && result.appointment._id ? result.appointment._id.slice(-6) : "N/A");
+                
+                // Safety check - ensure tokenNumber is not "0" or "N/A"
+                if (!tokenNumber || tokenNumber === 0 || tokenNumber === "0") {
+                  console.warn("⚠️ Token is 0 or N/A, attempting to extract from appointment:");
+                  tokenNumber = result.appointment?.tokenNumber || 
+                               (result.appointment?._id ? result.appointment._id.slice(-6) : Math.floor(Math.random() * 1000000));
+                  console.log("  Extracted token:", tokenNumber);
+                }
+                
+                const isEmergency = result.isEmergency || isEmergencyMode;
+                const remainingSlots = result.remainingSlots || 0;
+                
+                // Get appointment details
+                const appointmentDetails = result.appointment || {};
+                const doctorName = selectedSlot.doctorName || appointmentDetails.doctorName || "N/A";
+                const hospitalName = selectedSlot.hospitalName || appointmentDetails.hospitalName || "N/A";
+                const dateStr = selectedSlot.date || appointmentDetails.date || "N/A";
+                const timeStr = selectedSlot.timeSlot || appointmentDetails.timeSlot || "N/A";
+
+                console.log("🎟️ APPOINTMENT CONFIRMED:");
+                console.log("  ✅ Token:", tokenNumber);
+                console.log("  ✅ Patient:", patientName);
+                console.log("  ✅ Doctor:", doctorName);
+                console.log("  ✅ Hospital:", hospitalName);
+                console.log("  ✅ Date:", dateStr);
+                console.log("  ✅ Time:", timeStr);
+                console.log("  ✅ Emergency:", isEmergency);
+
+                const emergencyBadge = isEmergency ? '<div style="background: linear-gradient(135deg, #ff6b6b, #ee5a6f); color: white; padding: 15px; border-radius: 8px; margin: 15px 0; font-weight: bold; text-align: center; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.5);">🚨 EMERGENCY APPOINTMENT - HIGH PRIORITY 🚨</div>' : '';
+
+                // Create a clean confirmation page
+                document.body.innerHTML = `
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>Appointment Confirmed</title>
+                        <style>
+                            body {
+                                margin: 0;
+                                font-family: Arial, sans-serif;
+                                background: linear-gradient(150deg, #8fd3f4, #84fab0);
+                                min-height: 100vh;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                padding: 20px;
+                            }
+                            .confirmation-card {
+                                background: white;
+                                padding: 40px;
+                                border-radius: 15px;
+                                box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+                                text-align: center;
+                                max-width: 600px;
+                                width: 100%;
+                                animation: slideUp 0.5s ease;
+                            }
+                            @keyframes slideUp {
+                                from { opacity: 0; transform: translateY(30px); }
+                                to { opacity: 1; transform: translateY(0); }
+                            }
+                            h1 {
+                                color: #28a745;
+                                margin-bottom: 20px;
+                                font-size: 2rem;
+                            }
+                            .token-display {
+                                background: linear-gradient(135deg, #667eea, #764ba2);
+                                color: white;
+                                padding: 30px;
+                                border-radius: 10px;
+                                margin: 20px 0;
+                            }
+                            .token-number {
+                                font-size: 3rem;
+                                font-weight: bold;
+                                color: #ffd700;
+                                text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+                                margin: 10px 0;
+                            }
+                            .detail-row {
+                                display: flex;
+                                justify-content: space-between;
+                                padding: 12px;
+                                border-bottom: 1px solid #f0f0f0;
+                                font-size: 1.1rem;
+                            }
+                            .detail-row:last-child {
+                                border-bottom: none;
+                            }
+                            .detail-label {
+                                font-weight: bold;
+                                color: #555;
+                            }
+                            .detail-value {
+                                color: #333;
+                            }
+                            .buttons {
+                                margin-top: 30px;
+                                display: flex;
+                                gap: 15px;
+                                justify-content: center;
+                                flex-wrap: wrap;
+                            }
+                            button {
+                                padding: 15px 30px;
+                                border: none;
+                                border-radius: 8px;
+                                font-size: 1rem;
+                                font-weight: bold;
+                                cursor: pointer;
+                                transition: all 0.3s;
+                            }
+                            button:hover {
+                                transform: translateY(-2px);
+                                box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+                            }
+                            .btn-home {
+                                background-color: #007BFF;
+                                color: white;
+                            }
+                            .btn-appointments {
+                                background-color: #28a745;
+                                color: white;
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        <div class="confirmation-card">
+                            <h1>✅ Appointment Confirmed!</h1>
+                            
+                            ${emergencyBadge}
+                            
+                            <div class="token-display">
+                                <div style="font-size: 1.2rem; margin-bottom: 10px;">Your Token Number</div>
+                                <div class="token-number">${tokenNumber}</div>
+                                <div style="font-size: 0.9rem; margin-top: 10px; opacity: 0.9;">Please save this number for reference</div>
+                            </div>
+
+                            <div style="text-align: left; margin: 20px 0;">
+                                <div class="detail-row">
+                                    <span class="detail-label">Patient Name:</span>
+                                    <span class="detail-value">${patientName}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Contact:</span>
+                                    <span class="detail-value">${contactNumber}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Doctor:</span>
+                                    <span class="detail-value">${doctorName}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Hospital:</span>
+                                    <span class="detail-value">${hospitalName}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Date:</span>
+                                    <span class="detail-value">${dateStr}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Time:</span>
+                                    <span class="detail-value">${timeStr}</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Remaining Slots:</span>
+                                    <span class="detail-value" style="color: #28a745; font-weight: bold;">${remainingSlots}</span>
+                                </div>
+                                ${isEmergency ? '<div class="detail-row"><span class="detail-label">Status:</span><span class="detail-value" style="color: #ff6b6b; font-weight: bold;">🚨 EMERGENCY - HIGH PRIORITY</span></div>' : ''}
+                            </div>
+
+                            <div class="buttons">
+                                <button class="btn-home" onclick="window.location.href='index.html'">
+                                    🏠 Home
+                                </button>
+                                <button class="btn-appointments" onclick="window.location.href='view appointments.html'">
+                                    📋 View My Appointments
+                                </button>
+                            </div>
+                        </div>
+                    </body>
+                    </html>
+                `;
+            } catch (error) {
+                console.error("❌ NETWORK ERROR:", error);
+                msgEl.innerHTML = `
+                    <div style="color: red; background: #ffebee; padding: 15px; border-radius: 5px; border-left: 4px solid red;">
+                        <strong>❌ Network Error</strong><br>
+                        ${error.message}<br>
+                        <small style="color: #c62828;">Make sure the backend server is running on ${API_BASE}</small>
+                    </div>
+                `;
+                msgEl.style.color = "red";
+            }
+        }
+
+        document.getElementById("searchBtn").addEventListener("click", searchSlots);
+        document.getElementById("submitBtn").addEventListener("click", bookAppointment);
+
+        // Auto-refresh slots every 10 seconds when slot section is visible
+        setInterval(() => {
+            const slotSection = document.getElementById("slotSection");
+            if (slotSection.style.display === "block") {
+                searchSlots();
+            }
+        }, 10000);
+    </script>
+</body>
+</html>

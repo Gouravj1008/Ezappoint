@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Slot Booking System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .section {
+            margin: 30px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        input, select {
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            background: #e9ecef;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        pre {
+            background: #2d3748;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .badge-success { background: #28a745; color: white; }
+        .badge-warning { background: #ffc107; color: #333; }
+        .badge-danger { background: #dc3545; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏥 Real-Time Slot Booking System Test</h1>
+        
+        <div class="section">
+            <h2>Step 1: Login (Hospital)</h2>
+            <input type="text" id="hospitalEmail" placeholder="Hospital Email" value="hospital@test.com">
+            <input type="password" id="hospitalPassword" placeholder="Password" value="Test@123">
+            <button onclick="loginHospital()">Login Hospital</button>
+            <div id="hospitalLoginResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="section">
+            <h2>Step 2: Create Slot</h2>
+            <input type="text" id="hospitalName" placeholder="Hospital Name" value="Apollo Hospital">
+            <input type="text" id="doctorName" placeholder="Doctor Name" value="Dr. Sharma">
+            <input type="text" id="specialization" placeholder="Specialization" value="Cardiology">
+            <input type="text" id="location" placeholder="Location" value="Mumbai">
+            <input type="date" id="slotDate">
+            <input type="text" id="timeSlot" placeholder="Time Slot" value="10:00 AM - 11:00 AM">
+            <button onclick="createSlot()">Create Slot (10 slots)</button>
+            <div id="createSlotResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="section">
+            <h2>Step 3: Login (User)</h2>
+            <input type="text" id="userEmail" placeholder="User Email" value="user@test.com">
+            <input type="password" id="userPassword" placeholder="Password" value="Test@123">
+            <button onclick="loginUser()">Login User</button>
+            <div id="userLoginResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="section">
+            <h2>Step 4: Search Available Slots</h2>
+            <input type="date" id="searchDate">
+            <input type="text" id="searchLocation" placeholder="Location" value="Mumbai">
+            <input type="text" id="searchSpecialization" placeholder="Specialization" value="Cardiology">
+            <button onclick="searchSlots()">Search Slots</button>
+            <button onclick="startAutoRefresh()" style="background: #28a745;">🔄 Start Auto-Refresh</button>
+            <button onclick="stopAutoRefresh()" style="background: #dc3545;">⏹ Stop Auto-Refresh</button>
+            <div id="searchResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="section">
+            <h2>Step 5: Book Appointment</h2>
+            <input type="text" id="slotId" placeholder="Slot ID (from search)">
+            <input type="text" id="patientName" placeholder="Patient Name" value="John Doe">
+            <input type="text" id="contactNumber" placeholder="Contact Number" value="9876543210">
+            <button onclick="bookAppointment()">Book Appointment</button>
+            <button onclick="bookMultiple()" style="background: #fd7e14;">Book 3 Appointments</button>
+            <div id="bookResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="section">
+            <h2>Step 6: View All Slots (Real-Time)</h2>
+            <button onclick="viewAllSlots()">View All Slots</button>
+            <div id="allSlotsResult" class="result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "http://localhost:5000";
+        let hospitalToken = "";
+        let userToken = "";
+        let autoRefreshInterval = null;
+
+        // Set tomorrow's date by default
+        document.addEventListener("DOMContentLoaded", () => {
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const dateStr = tomorrow.toISOString().split('T')[0];
+            document.getElementById("slotDate").value = dateStr;
+            document.getElementById("searchDate").value = dateStr;
+        });
+
+        async function loginHospital() {
+            const email = document.getElementById("hospitalEmail").value;
+            const password = document.getElementById("hospitalPassword").value;
+            const resultDiv = document.getElementById("hospitalLoginResult");
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const result = await response.json();
+                resultDiv.style.display = "block";
+                
+                if (response.ok) {
+                    hospitalToken = result.token;
+                    resultDiv.className = "result success";
+                    resultDiv.innerHTML = `✅ Hospital Login Success<br><strong>Token:</strong> ${hospitalToken.substring(0, 20)}...`;
+                } else {
+                    resultDiv.className = "result error";
+                    resultDiv.innerHTML = `❌ Login Failed: ${result.message}`;
+                }
+            } catch (error) {
+                resultDiv.style.display = "block";
+                resultDiv.className = "result error";
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function createSlot() {
+            if (!hospitalToken) {
+                alert("Please login as hospital first!");
+                return;
+            }
+
+            const data = {
+                organizationName: document.getElementById("hospitalName").value,
+                address: document.getElementById("location").value,
+                doctors: [{
+                    name: document.getElementById("doctorName").value,
+                    specialization: document.getElementById("specialization").value,
+                    availableDate: document.getElementById("slotDate").value,
+                    timeFrom: "10:00",
+                    timeTo: "11:00",
+                    noOfTokens: 10
+                }]
+            };
+
+            const resultDiv = document.getElementById("createSlotResult");
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/organization/save-details`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${hospitalToken}`
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                resultDiv.style.display = "block";
+                
+                if (response.ok) {
+                    resultDiv.className = "result success";
+                    resultDiv.innerHTML = `✅ Slot Created Successfully<br><pre>${JSON.stringify(result, null, 2)}</pre>`;
+                } else {
+                    resultDiv.className = "result error";
+                    resultDiv.innerHTML = `❌ Failed: ${result.message}`;
+                }
+            } catch (error) {
+                resultDiv.style.display = "block";
+                resultDiv.className = "result error";
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function loginUser() {
+            const email = document.getElementById("userEmail").value;
+            const password = document.getElementById("userPassword").value;
+            const resultDiv = document.getElementById("userLoginResult");
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/auth/login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const result = await response.json();
+                resultDiv.style.display = "block";
+                
+                if (response.ok) {
+                    userToken = result.token;
+                    resultDiv.className = "result success";
+                    resultDiv.innerHTML = `✅ User Login Success<br><strong>Token:</strong> ${userToken.substring(0, 20)}...`;
+                } else {
+                    resultDiv.className = "result error";
+                    resultDiv.innerHTML = `❌ Login Failed: ${result.message}`;
+                }
+            } catch (error) {
+                resultDiv.style.display = "block";
+                resultDiv.className = "result error";
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function searchSlots() {
+            if (!userToken) {
+                alert("Please login as user first!");
+                return;
+            }
+
+            const date = document.getElementById("searchDate").value;
+            const location = document.getElementById("searchLocation").value;
+            const specialization = document.getElementById("searchSpecialization").value;
+            
+            const params = new URLSearchParams({ date, location });
+            if (specialization) params.append("specialization", specialization);
+
+            const resultDiv = document.getElementById("searchResult");
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/organization/available-slots?${params}`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${userToken}`
+                    }
+                });
+                
+                const result = await response.json();
+                resultDiv.style.display = "block";
+                
+                if (response.ok) {
+                    const slots = result.slots || [];
+                    resultDiv.className = "result success";
+                    
+                    if (slots.length === 0) {
+                        resultDiv.innerHTML = `⚠️ No available slots found`;
+                    } else {
+                        let html = `✅ Found ${slots.length} Available Slot(s)<br><br>`;
+                        slots.forEach((slot, index) => {
+                            const badgeClass = slot.availableSlots > 5 ? 'badge-success' : 
+                                               slot.availableSlots > 2 ? 'badge-warning' : 'badge-danger';
+                            html += `
+                                <div style="background: white; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #667eea;">
+                                    <strong>#${index + 1} ${slot.doctorName}</strong> <span class="badge ${badgeClass}">${slot.availableSlots} slots</span><br>
+                                    <strong>ID:</strong> <code>${slot._id}</code><br>
+                                    <strong>Hospital:</strong> ${slot.hospitalName}<br>
+                                    <strong>Specialization:</strong> ${slot.specialization}<br>
+                                    <strong>Time:</strong> ${slot.timeSlot}<br>
+                                    <strong>Date:</strong> ${slot.date}<br>
+                                    <strong>Location:</strong> ${slot.location}
+                                </div>
+                            `;
+                        });
+                        resultDiv.innerHTML = html;
+                        
+                        // Auto-fill slot ID
+                        if (slots.length > 0) {
+                            document.getElementById("slotId").value = slots[0]._id;
+                        }
+                    }
+                } else {
+                    resultDiv.className = "result error";
+                    resultDiv.innerHTML = `❌ Failed: ${result.message}`;
+                }
+            } catch (error) {
+                resultDiv.style.display = "block";
+                resultDiv.className = "result error";
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function bookAppointment() {
+            if (!userToken) {
+                alert("Please login as user first!");
+                return;
+            }
+
+            const data = {
+                slotId: document.getElementById("slotId").value,
+                patientName: document.getElementById("patientName").value,
+                contactNumber: document.getElementById("contactNumber").value
+            };
+
+            const resultDiv = document.getElementById("bookResult");
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/appointments`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${userToken}`
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                resultDiv.style.display = "block";
+                
+                if (response.ok) {
+                    resultDiv.className = "result success";
+                    resultDiv.innerHTML = `
+                        ✅ Appointment Booked Successfully<br>
+                        <strong>Token Number:</strong> ${result.tokenNumber}<br>
+                        <strong>Remaining Slots:</strong> <span style="color: ${result.remainingSlots > 5 ? 'green' : result.remainingSlots > 2 ? 'orange' : 'red'}; font-weight: bold;">${result.remainingSlots}</span><br>
+                        <pre>${JSON.stringify(result.appointment, null, 2)}</pre>
+                    `;
+                    
+                    // Auto-refresh slots to show real-time update
+                    setTimeout(searchSlots, 500);
+                } else {
+                    resultDiv.className = "result error";
+                    resultDiv.innerHTML = `❌ Booking Failed: ${result.message}`;
+                }
+            } catch (error) {
+                resultDiv.style.display = "block";
+                resultDiv.className = "result error";
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+
+        async function bookMultiple() {
+            const resultDiv = document.getElementById("bookResult");
+            resultDiv.style.display = "block";
+            resultDiv.className = "result info";
+            resultDiv.innerHTML = "📋 Booking 3 appointments...";
+
+            for (let i = 1; i <= 3; i++) {
+                const data = {
+                    slotId: document.getElementById("slotId").value,
+                    patientName: `Patient ${i}`,
+                    contactNumber: `98765432${10 + i}`
+                };
+
+                try {
+                    const response = await fetch(`${API_BASE}/api/appointments`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${userToken}`
+                        },
+                        body: JSON.stringify(data)
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (response.ok) {
+                        resultDiv.innerHTML += `<br>✅ Booking ${i}: Token #${result.tokenNumber}, Remaining: ${result.remainingSlots}`;
+                    } else {
+                        resultDiv.innerHTML += `<br>❌ Booking ${i}: ${result.message}`;
+                    }
+                } catch (error) {
+                    resultDiv.innerHTML += `<br>❌ Booking ${i}: ${error.message}`;
+                }
+                
+                // Wait 500ms between bookings
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            
+            resultDiv.className = "result success";
+            setTimeout(searchSlots, 500);
+        }
+
+        async function viewAllSlots() {
+            if (!hospitalToken) {
+                alert("Please login as hospital first!");
+                return;
+            }
+
+            const resultDiv = document.getElementById("allSlotsResult");
+            
+            try {
+                const response = await fetch(`${API_BASE}/api/organization/all-slots`, {
+                    method: "GET",
+                    headers: {
+                        "Authorization": `Bearer ${hospitalToken}`
+                    }
+                });
+                
+                const result = await response.json();
+                resultDiv.style.display = "block";
+                
+                if (response.ok) {
+                    const slots = result.slots || [];
+                    resultDiv.className = "result success";
+                    
+                    if (slots.length === 0) {
+                        resultDiv.innerHTML = `⚠️ No slots found`;
+                    } else {
+                        let html = `✅ Total Slots: ${slots.length}<br><br>`;
+                        slots.forEach((slot, index) => {
+                            const progress = (slot.bookedSlots / slot.totalSlots * 100).toFixed(0);
+                            const statusBadge = slot.isActive ? 
+                                '<span class="badge badge-success">ACTIVE</span>' : 
+                                '<span class="badge badge-danger">FULL</span>';
+                            
+                            html += `
+                                <div style="background: white; padding: 15px; margin: 10px 0; border-radius: 5px;">
+                                    <strong>#${index + 1} ${slot.doctorName}</strong> ${statusBadge}<br>
+                                    <strong>Hospital:</strong> ${slot.hospitalName}<br>
+                                    <strong>Specialization:</strong> ${slot.specialization}<br>
+                                    <strong>Time:</strong> ${slot.timeSlot}<br>
+                                    <strong>Progress:</strong> ${slot.bookedSlots}/${slot.totalSlots} (${progress}%)<br>
+                                    <div style="background: #e9ecef; height: 20px; border-radius: 10px; overflow: hidden; margin-top: 5px;">
+                                        <div style="background: ${slot.availableSlots > 5 ? '#28a745' : slot.availableSlots > 2 ? '#ffc107' : '#dc3545'}; height: 100%; width: ${progress}%; transition: width 0.3s;"></div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        resultDiv.innerHTML = html;
+                    }
+                } else {
+                    resultDiv.className = "result error";
+                    resultDiv.innerHTML = `❌ Failed: ${result.message}`;
+                }
+            } catch (error) {
+                resultDiv.style.display = "block";
+                resultDiv.className = "result error";
+                resultDiv.innerHTML = `❌ Error: ${error.message}`;
+            }
+        }
+
+        function startAutoRefresh() {
+            if (autoRefreshInterval) {
+                alert("Auto-refresh already running!");
+                return;
+            }
+            
+            autoRefreshInterval = setInterval(() => {
+                searchSlots();
+                viewAllSlots();
+            }, 3000);
+            
+            alert("✅ Auto-refresh started (every 3 seconds)");
+        }
+
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                alert("⏹ Auto-refresh stopped");
+            } else {
+                alert("Auto-refresh not running");
+            }
+        }
+    </script>
+</body>
+</html>
